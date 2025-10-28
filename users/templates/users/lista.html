@@ -1,0 +1,76 @@
+<p>
+    <a href="{% url 'users:lista' %}" style="margin-right: 15px;">🔍 Todos os Professores</a>
+    <a href="{% url 'users:voluntarios' %}" style="color: green; font-weight: bold;">⭐ Aulas Voluntárias GRATUITAS</a>
+</p>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ titulo }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .professor-card { 
+            border: 1px solid #ccc; 
+            margin: 15px 0; 
+            padding: 15px; 
+            border-radius: 5px; 
+            background-color: #f9f9f9;
+        }
+        .voluntario { 
+            color: white; 
+            background-color: #28a745; 
+            padding: 5px; 
+            border-radius: 3px; 
+            display: inline-block; 
+            font-weight: bold;
+        }
+        form { margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        input[type="text"] { padding: 8px; margin-right: 10px; width: 300px; }
+        button { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        a { color: #dc3545; text-decoration: none; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    
+    <h1>{{ titulo }}</h1>
+    
+    <form method="get" action="{% url 'users:lista' %}">
+        <label for="busca">Buscar por Disciplina ou Nome:</label>
+        
+        <input type="text" id="busca" name="q" placeholder="Ex: Matemática, Inglês ou Nome do Professor" value="{{ request.GET.q|default:'' }}">
+        
+        <button type="submit">Buscar</button>
+        
+        {% if request.GET.q %}
+            <a href="{% url 'users:lista' %}">Limpar Busca</a>
+        {% endif %}
+    </form>
+    <hr>
+    <h2>Professores Encontrados (Total: {{ professores|length }})</h2>
+
+    {% if professores %}
+        
+        {% for professor in professores %}
+        
+            <div class="professor-card">
+                <h3>{{ professor.nome_completo }}</h3>
+                <p><strong>Disciplina:</strong> {{ professor.disciplina }}</p>
+                <p><strong>E-mail:</strong> {{ professor.email }}</p>
+                
+                {% if professor.is_voluntario %}
+                    <p class="voluntario">Aulas Voluntárias/Gratuitas disponíveis!</p>
+                {% else %}
+                    <p>Modalidade: Particular Paga</p>
+                {% endif %}
+                
+                <p><strong>Sobre:</strong> {{ professor.bio|default:"Nenhuma biografia fornecida." }}</p>
+            </div>
+            
+        {% endfor %}
+
+    {% else %}
+        <p>Nenhum professor encontrado com o termo "{{ request.GET.q }}". Tente outra palavra-chave.</p>
+    {% endif %}
+
+</body>
+</html>

@@ -14,9 +14,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+
+
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # MODIFICAÇÃO 1: Redireciona a raiz do site ('') para o app 'users'
+    # path('professores/', include('users.urls', namespace='users')), # REMOVA/COMENTE ESTA LINHA
+    path('', include('users.urls', namespace='users')), # <-- SUBSTITUA PELA RAIZ
+
+    # MODIFICAÇÃO 2: Se você quiser manter a URL /professores/ (opcional, mas recomendado para navegação)
+    # path('professores/', include('users.urls', namespace='users')),
 ]
