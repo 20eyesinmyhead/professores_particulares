@@ -1,33 +1,34 @@
-"""
-URL configuration for core project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
-
-
-
 from django.contrib import admin
 from django.urls import path, include
 
+# 1. IMPORTAÇÕES ADICIONADAS
+# Necessário para servir arquivos estáticos (logo.jpg) e de mídia (fotos de perfil)
+# durante o desenvolvimento (DEBUG=True)
+from django.conf import settings
+from django.conf.urls.static import static
+
+# 2. REMOVIDA A IMPORTAÇÃO DESNECESSÁRIA
+# A view 'lista_professores' não é mais necessária aqui,
+# pois o 'include' abaixo cuidará dela.
+# from users.views import lista_professores 
+
 urlpatterns = [
+    # Rota de Administrador
     path('admin/', admin.site.urls),
     
-    # MODIFICAÇÃO 1: Redireciona a raiz do site ('') para o app 'users'
-    # path('professores/', include('users.urls', namespace='users')), # REMOVA/COMENTE ESTA LINHA
-    path('', include('users.urls', namespace='users')), # <-- SUBSTITUA PELA RAIZ
+    # 3. CORREÇÃO DA ROTA RAIZ
+    # Removemos a linha duplicada 'path('', lista_professores...)'
+    # Esta única linha agora controla a página inicial (que vai para 'users:lista_professores')
+    # E também todas as outras URLs do app 'users' (como /registro/, /perfil/, etc.)
+    path('', include('users.urls', namespace='users')),
 
-    # MODIFICAÇÃO 2: Se você quiser manter a URL /professores/ (opcional, mas recomendado para navegação)
-    # path('professores/', include('users.urls', namespace='users')),
+    # Rotas de autenticação padrão (para reset de senha, etc.)
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
+
+# 4. ADIÇÃO PARA SERVIR ARQUIVOS EM MODO DE DESENVOLVIMENTO
+# Isso dirá ao Django para encontrar e servir seu 'logo.jpg' e
+# futuras fotos de perfil.
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

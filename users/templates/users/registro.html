@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_tags %} <!-- Para o filtro add_class -->
+
+{% block title %}Crie sua Conta{% endblock %}
+
+{% block content %}
+<section class="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
+    <div class="w-full max-w-lg bg-white p-8 rounded-xl shadow-2xl space-y-6">
+
+        <h2 class="text-3xl font-extrabold text-gray-900 text-center border-b pb-3 mb-6">
+            Crie sua Conta
+        </h2>
+        <p class="text-center text-gray-500 mb-6">
+            Preencha os campos abaixo para se registrar.
+        </p>
+
+        <!-- Mensagens do Django -->
+        {% if messages %}
+            <div class="space-y-3">
+                {% for message in messages %}
+                    <div class="p-3 text-sm rounded-lg shadow-md
+                        {% if message.tags == 'error' %} bg-red-100 text-red-700 border border-red-300
+                        {% elif message.tags == 'success' %} bg-green-100 text-green-700 border border-green-300
+                        {% else %} bg-amber-100 text-amber-700 border border-amber-300 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- FORMULÁRIO DE REGISTRO (CustomUserCreationForm) -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- Exibe erros gerais do formulário -->
+            {% if form.non_field_errors %}
+                <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Renderiza os campos do formulário -->
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ field.label }}
+                        {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                    </label>
+
+                    <!-- Aplica classes Tailwind usando o filtro -->
+                    {% if field.widget_type == 'textarea' %}
+                        {{ field|add_class:"mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24" }}
+                    {% elif field.widget_type == 'checkbox' %}
+                         <div class="mt-1 flex items-center">
+                              {{ field|add_class:"h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" }}
+                              <label for="{{ field.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                                  {{ field.help_text }}
+                              </label>
+                          </div>
+                    {% else %}
+                        {{ field|add_class:"mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" }}
+                    {% endif %}
+
+                    {% if field.help_text and field.widget_type != 'checkbox' %}
+                        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <button type="submit"
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                Finalizar Cadastro
+            </button>
+        </form>
+
+        <div class="text-center pt-4 border-t border-gray-100 mt-6">
+            <p class="text-sm text-gray-600">
+                Já tem uma conta?
+                <a href="{% url 'login' %}" class="font-medium text-indigo-600 hover:text-indigo-500 transition duration-150 ease-in-out">
+                    Faça Login
+                </a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
+

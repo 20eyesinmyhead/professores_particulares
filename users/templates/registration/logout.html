@@ -1,0 +1,12 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    <h2>Tem certeza que deseja sair?</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sim, fazer log out</button>
+    </form>
+
+    <p><a href="{% url 'home' %}">Cancelar e voltar para a página inicial</a></p>
+{% endblock %}

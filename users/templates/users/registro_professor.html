@@ -1,0 +1,15 @@
+{% extends 'base/base.html' %} 
+{% block content %}
+
+    <h2>{{ titulo }}</h2>
+    <p>Complete seu perfil para aparecer na busca!</p>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {{ form.as_p }} 
+        
+        <button type="submit">Publicar Perfil</button>
+    </form>
+    
+{% endblock content %}

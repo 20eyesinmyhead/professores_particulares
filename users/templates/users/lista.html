@@ -1,76 +1,109 @@
-<p>
-    <a href="{% url 'users:lista' %}" style="margin-right: 15px;">🔍 Todos os Professores</a>
-    <a href="{% url 'users:voluntarios' %}" style="color: green; font-weight: bold;">⭐ Aulas Voluntárias GRATUITAS</a>
-</p>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ titulo }}</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .professor-card { 
-            border: 1px solid #ccc; 
-            margin: 15px 0; 
-            padding: 15px; 
-            border-radius: 5px; 
-            background-color: #f9f9f9;
-        }
-        .voluntario { 
-            color: white; 
-            background-color: #28a745; 
-            padding: 5px; 
-            border-radius: 3px; 
-            display: inline-block; 
-            font-weight: bold;
-        }
-        form { margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        input[type="text"] { padding: 8px; margin-right: 10px; width: 300px; }
-        button { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
-        a { color: #dc3545; text-decoration: none; margin-left: 10px; }
-    </style>
-</head>
-<body>
-    
-    <h1>{{ titulo }}</h1>
-    
-    <form method="get" action="{% url 'users:lista' %}">
-        <label for="busca">Buscar por Disciplina ou Nome:</label>
-        
-        <input type="text" id="busca" name="q" placeholder="Ex: Matemática, Inglês ou Nome do Professor" value="{{ request.GET.q|default:'' }}">
-        
-        <button type="submit">Buscar</button>
-        
-        {% if request.GET.q %}
-            <a href="{% url 'users:lista' %}">Limpar Busca</a>
-        {% endif %}
-    </form>
-    <hr>
-    <h2>Professores Encontrados (Total: {{ professores|length }})</h2>
+{% extends 'base/base.html' %} 
+{% load static %}
+{% load perfil_tags %}
+<!-- Certifique-se de que 'perfil_tags' existe ou remova se não for necessário -->
 
-    {% if professores %}
-        
-        {% for professor in professores %}
-        
-            <div class="professor-card">
-                <h3>{{ professor.nome_completo }}</h3>
-                <p><strong>Disciplina:</strong> {{ professor.disciplina }}</p>
-                <p><strong>E-mail:</strong> {{ professor.email }}</p>
-                
-                {% if professor.is_voluntario %}
-                    <p class="voluntario">Aulas Voluntárias/Gratuitas disponíveis!</p>
-                {% else %}
-                    <p>Modalidade: Particular Paga</p>
-                {% endif %}
-                
-                <p><strong>Sobre:</strong> {{ professor.bio|default:"Nenhuma biografia fornecida." }}</p>
-            </div>
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8 mt-4">
+    <h1 class="text-4xl font-extrabold text-gray-800 mb-6 border-b-4 border-indigo-500 pb-2">{{ titulo }}</h1>
+
+    <!-- Formulário de Busca -->
+    <form method="GET" class="mb-8">
+        <div class="flex items-center space-x-2 bg-white p-3 rounded-xl shadow-lg border border-gray-200">
+            <input type="text" 
+                   name="q" 
+                   class="flex-grow px-4 py-2 border-none focus:ring-0 focus:outline-none placeholder-gray-500 text-gray-700" 
+                   placeholder="Buscar por disciplina ou nome de usuário..." 
+                   value="{{ request.GET.q|default:'' }}">
             
-        {% endfor %}
+            <button class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-300 shadow-md transform hover:scale-[1.01]" 
+                    type="submit">
+                <i class="fas fa-search me-1"></i> Buscar
+            </button>
+            
+            {% if request.GET.q %}
+                <a href="{% url request.resolver_match.url_name %}" 
+                   class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition duration-300">
+                    Limpar
+                </a>
+            {% endif %}
+        </div>
+    </form>
 
-    {% else %}
-        <p>Nenhum professor encontrado com o termo "{{ request.GET.q }}". Tente outra palavra-chave.</p>
+    <!-- Mensagem de Nenhum Resultado -->
+    {% if not professores %}
+        <div class="p-6 bg-yellow-100 text-yellow-800 rounded-xl shadow-inner border border-yellow-300 flex items-center space-x-3">
+            <i class="fas fa-exclamation-triangle text-2xl"></i>
+            <p class="font-semibold">Nenhum professor encontrado com os critérios de busca.</p>
+        </div>
     {% endif %}
 
-</body>
-</html>
+    <!-- Grid de Professores -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for professor in professores %}
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden transform hover:scale-[1.02] transition duration-300 border border-gray-100">
+            
+            <!-- Imagem e Informações Principais -->
+            <div class="flex flex-col">
+                <!-- Foto -->
+                <div class="h-40 w-full overflow-hidden">
+                    <img src="{% if professor.foto_perfil %}{{ professor.foto_perfil.url }}{% else %}{% static 'default.png' %}{% endif %}" 
+                         alt="Foto de {{ professor.username }}" 
+                         class="w-full h-full object-cover">
+                </div>
+
+                <div class="p-4 flex flex-col items-center text-center">
+                    <h5 class="text-xl font-bold text-gray-800 mb-1 truncate w-full">
+                        {{ professor.como_deseja_ser_chamado|default:professor.username }}
+                    </h5>
+                    <p class="text-sm text-gray-500 italic mb-2">@{{ professor.username }}</p>
+                    
+                    <!-- Disciplinas -->
+                    <div class="mb-2">
+                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700">
+                            <i class="fas fa-book-open me-1"></i> {{ professor.professorprofile.disciplinas|default:"Disciplina Indefinida"|truncatechars:25 }}
+                        </span>
+                    </div>
+
+                    <!-- Tarifa/Voluntário -->
+                    <div class="mb-3">
+                        {% if professor.professorprofile.is_voluntario %}
+                            <span class="inline-block px-3 py-1 text-xs font-bold rounded-lg bg-green-500 text-white shadow-md">
+                                <i class="fas fa-heart me-1"></i> Aulas Gratuitas
+                            </span>
+                        {% elif professor.professorprofile.tarifa_hora %}
+                            <span class="inline-block px-3 py-1 text-xs font-bold rounded-lg bg-yellow-500 text-gray-800 shadow-md">
+                                R$ {{ professor.professorprofile.tarifa_hora|floatformat:2 }} / hora
+                            </span>
+                        {% else %}
+                            <span class="inline-block px-3 py-1 text-xs font-bold rounded-lg bg-gray-300 text-gray-800 shadow-md">
+                                Tarifa a Negociar
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Avaliação (Exemplo) -->
+                    <p class="text-sm text-gray-600 mb-3 flex items-center justify-center">
+                        <i class="fas fa-star text-yellow-400 me-1"></i>
+                        {{ professor.professorprofile.media_avaliacoes|default:"N/A" }} Avaliação
+                    </p>
+
+                    <!-- Bio -->
+                    <p class="text-xs text-gray-500 text-center mb-4 h-12 overflow-hidden line-clamp-3">
+                        {{ professor.professorprofile.bio_profissional|default:"Nenhuma descrição profissional disponível." }}
+                    </p>
+
+                    <!-- Botão de Ação -->
+                    <a href="{% url 'users:perfil' username=professor.username %}" 
+                       class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-300 text-sm shadow-md">
+                        <i class="fas fa-user-circle me-1"></i> Ver Perfil
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}

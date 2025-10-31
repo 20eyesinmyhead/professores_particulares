@@ -7,10 +7,12 @@ For more information on this file, see
 https://docs.djangoproject.com/en/5.2/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/5.2/ref/settings/
+https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 """
-
+import os 
 from pathlib import Path
+# ADICIONADO: Import para o banco de dados de produção
+import dj_database_url 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,13 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#vv6=3)!8f96h@_-w+jz84&1v9b=1k56^p4eg8+$#$$3mrgkk-'
+# MODIFICADO: Carrega a SECRET_KEY do ambiente (produção) ou usa a sua local (desenvolvimento)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-#vv6=3)!8f96h@_-w+jz84&1v9b=1k56^p4eg7+$#$$3mrgkk-')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# MODIFICADO: DEBUG é 'False' em produção (quando a var 'RENDER' existir) e 'True' localmente
+DEBUG = 'RENDER' not in os.environ
 
+# MODIFICADO: Adiciona o host do Render.com automaticamente em produção
 ALLOWED_HOSTS = []
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
 # Application definition
@@ -42,6 +49,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # ADICIONADO: WhiteNoise Middleware (deve vir logo após o SecurityMiddleware)
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -73,11 +82,13 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# MODIFICADO: Configuração de banco de dados para produção (Render) e fallback para local (sqlite3)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        # Usa o sqlite3 como padrão se a DATABASE_URL (do Render) não for encontrada
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 
@@ -103,21 +114,53 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'pt-br' # Ajustado para português
+TIME_ZONE = 'America/Sao_Paulo' # Ajustado para o fuso horário brasileiro
 
 USE_I18N = True
 
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# ----------------------------------------------------
+# CONFIGURAÇÃO DE ARQUIVOS ESTÁTICOS E DE MÍDIA
+# ----------------------------------------------------
 
-STATIC_URL = 'static/'
+# URL que o navegador usa para acessar os arquivos
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+# Pasta onde os arquivos de MÍDIA (uploads) serão salvos
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Diretórios onde o Django procura arquivos estáticos em DESENVOLVIMENTO
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'), 
+]
+
+# Pasta onde os arquivos serão COLETADOS em PRODUÇÃO (collectstatic)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# ADICIONADO: Configuração de armazenamento do WhiteNoise para produção
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ----------------------------------------------------
+# CONFIGURAÇÕES DO PROJETO (Redirecionamentos, E-mail, Usuário)
+# ----------------------------------------------------
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Configuração de E-mail para Desenvolvimento
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@professoresvoluntarios.com'
+EMAIL_SUBJECT_PREFIX = '[Professores Voluntários] '
+
+# CONFIGURAÇÃO DE USUÁRIO CUSTOMIZADO
+AUTH_USER_MODEL = 'users.CustomUser'

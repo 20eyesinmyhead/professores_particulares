@@ -1,0 +1,250 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load custom_tags %} 
+<!-- Carrega o filtro add_class -->
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8 max-w-3xl">
+
+    <!-- Mensagens do Django -->
+    {% if messages %}
+        <div class="mb-4 space-y-3">
+            {% for message in messages %}
+            <div class="p-3 text-sm rounded-lg shadow-md 
+                {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-100">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+            Editar Perfil
+        </h1>
+
+        <!-- Abas de Navegação (Sempre Visíveis) -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button id="tab-geral"
+                    class="tab-button flex-1 py-3 text-center text-lg font-semibold border-b-2 transition duration-300 ease-in-out"
+                    data-target="form-geral">
+                Perfil Geral
+            </button>
+            
+            <button id="tab-professor"
+                    class="tab-button flex-1 py-3 text-center text-lg font-semibold border-b-2 transition duration-300 ease-in-out"
+                    data-target="form-professor">
+                Perfil de Professor
+            </button>
+        </div>
+
+        <!-- 
+        FORMULÁRIO ÚNICO
+        -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Seção 1: Formulário Geral (CustomUserEditForm) -->
+            <div id="form-geral" class="form-container space-y-4">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                    <i class="fas fa-user-circle text-yellow-500 mr-2"></i>
+                    Informações Gerais da Conta
+                </h2>
+                
+                {% if user_form.non_field_errors %}
+                    <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                        {% for error in user_form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% for field in user_form %}
+                    <div class="form-group mb-4">
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ field.label }}
+                        </label>
+                        
+                        <!-- Checkbox Amarelo (Geral) -->
+                        {% if field.name == 'is_professor' or field.name == 'pausar_conta' %}
+                            <div class="mt-2 flex items-center">
+                                {{ field|add_class:"h-4 w-4 accent-yellow-600 border-gray-300 rounded focus:ring-yellow-500" }}
+                                <label for="{{ field.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                                    {{ field.help_text|safe }}
+                                </label>
+                            </div>
+                        <!-- Foco Amarelo -->
+                        {% elif field.widget_type == 'textarea' %}
+                            {{ field|add_class:"mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 h-24" }}
+                        {% else %}
+                            {{ field|add_class:"mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500" }}
+                        {% endif %}
+                        
+                        {% if field.help_text and field.name != 'is_professor' and field.name != 'pausar_conta' %}
+                            <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Seção 2: Formulário de Professor (ProfessorProfileForm) -->
+            <div id="form-professor" class="form-container hidden space-y-4 mt-10 pt-6 border-t border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                    <i class="fas fa-star text-yellow-500 mr-2"></i>
+                    Informações Profissionais
+                </h2>
+                
+                {% if professor_form %}
+                    {% if professor_form.non_field_errors %}
+                        <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                            {% for error in professor_form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for field in professor_form %}
+                        <div class="form-group mb-4">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ field.label }}
+                            </label>
+                            
+                            <!-- ====================================================== -->
+                            <!-- CORREÇÃO: Aplica o estilo de checkbox amarelo aqui também -->
+                            <!-- ====================================================== -->
+                            {% if field.widget_type == 'checkbox' %}
+                                <div class="mt-2 flex items-center">
+                                    {{ field|add_class:"h-4 w-4 accent-yellow-600 border-gray-300 rounded focus:ring-yellow-500" }}
+                                    <label for="{{ field.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                                        {{ field.help_text|safe }}
+                                    </label>
+                                </div>
+                            {% elif field.widget_type == 'textarea' %}
+                                {{ field|add_class:"mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 h-24" }}
+                            {% else %}
+                                {{ field|add_class:"mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500" }}
+                            {% endif %}
+                            
+                            <!-- Esconde o help_text de checkboxes (pois já está no label) -->
+                            {% if field.help_text and field.widget_type != 'checkbox' %}
+                                <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Esta mensagem aparece se o usuário NÃO for professor -->
+                    <p class="text-gray-600">
+                        Para preencher suas informações profissionais, primeiro marque a opção 
+                        <strong class="text-yellow-600">"Habilitar o perfil profissional"</strong> na aba "Perfil Geral" e salve suas alterações.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Botão de Salvar (Unificado) -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <!-- Botão cinza escuro (para combinar com a navbar) -->
+                <button type="submit" 
+                        class="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-300 transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50">
+                    Salvar Alterações
+                </button>
+            </div>
+            
+        </form>
+        
+        <!-- Seção Deletar Conta (Mantido Vermelho) -->
+        <div class="mt-10 pt-6 border-t border-dashed border-red-300 text-center">
+            <h3 class="text-lg font-semibold text-red-700">Zona de Perigo</h3>
+            <p class="text-sm text-gray-600 mt-2 mb-4">Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta e todos os dados associados.</p>
+            <!-- ALTERAÇÃO: href="#" foi trocado pelo link da URL de exclusão -->
+            <a href="{% url 'users:excluir_conta' %}" class="text-red-600 hover:text-red-800 underline">
+                Eu entendo, quero deletar minha conta
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+<!-- SCRIPT DE ABAS (Lógica de Alerta mantida) -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabGeral = document.getElementById('tab-geral');
+        const tabProfessor = document.getElementById('tab-professor');
+        const formGeral = document.getElementById('form-geral');
+        const formProfessor = document.getElementById('form-professor');
+        
+        // ID do checkbox 'is_professor'
+        const isProfessorCheckbox = document.getElementById('{{ user_form.is_professor.auto_id }}');
+        
+        // Função para mostrar a aba selecionada
+        const switchTab = (tabToShow) => {
+            if (tabToShow === 'tab-professor') {
+                // 1. Verifica se o checkbox está marcado ANTES de mudar
+                if (isProfessorCheckbox && !isProfessorCheckbox.checked) {
+                    // ATENÇÃO: alert() pode não funcionar no seu ambiente. 
+                    // Se não funcionar, esta lógica de bloqueio pode falhar.
+                    alert("Para editar o Perfil de Professor, marque a opção 'Habilitar o perfil profissional' na aba 'Perfil Geral' primeiro.");
+                    switchTab('tab-geral');
+                    return;
+                }
+
+                // Ativa a aba Professor (Visual)
+                tabGeral.classList.remove('border-yellow-500', 'text-yellow-600');
+                tabGeral.classList.add('border-transparent', 'text-gray-500');
+                tabProfessor.classList.add('border-yellow-500', 'text-yellow-600');
+                tabProfessor.classList.remove('border-transparent', 'text-gray-500');
+                
+                // Mostra o container Professor
+                formGeral.classList.add('hidden');
+                formProfessor.classList.remove('hidden');
+
+            } else { // 'tab-geral'
+                // Ativa a aba Geral (Visual)
+                tabProfessor.classList.remove('border-yellow-500', 'text-yellow-600');
+                tabProfessor.classList.add('border-transparent', 'text-gray-500');
+                tabGeral.classList.add('border-yellow-500', 'text-yellow-600');
+                tabGeral.classList.remove('border-transparent', 'text-gray-500');
+
+                // Mostra o container Geral
+                formProfessor.classList.add('hidden');
+                formGeral.classList.remove('hidden');
+            }
+        };
+
+        // Define a aba ativa inicial (baseado em erros, se houver)
+        const professorErrors = document.getElementById('form-professor')?.querySelector('.text-red-500');
+        if (professorErrors && isProfessorCheckbox && isProfessorCheckbox.checked) {
+            switchTab('tab-professor');
+        } else {
+            switchTab('tab-geral');
+        }
+
+        // Listeners de clique nas abas
+        tabGeral.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab('tab-geral');
+        });
+        tabProfessor.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTab('tab-professor');
+        });
+        
+        // Listener para o checkbox (se o usuário desmarcar 'is_professor')
+        if (isProfessorCheckbox) {
+            isProfessorCheckbox.addEventListener('change', (e) => {
+                if (!e.target.checked) {
+                    // Se desmarcar, força a volta para a aba Geral
+                    switchTab('tab-geral');
+                }
+            });
+        }
+    });
+</script>
+{% endblock content %}

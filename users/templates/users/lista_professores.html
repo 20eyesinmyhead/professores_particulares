@@ -1,0 +1,156 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load custom_tags %} {% comment %} Carrega o filtro add_class {% endcomment %}
+{% load split_tag %} {% comment %} Carrega o filtro split {% endcomment %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<!-- O container do base.html (Tailwind) já aplica mx-auto e padding -->
+<div class="my-5">
+
+    <!-- Título Principal -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900">{{ titulo }}</h1>
+        <p class="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+            {% if somente_voluntarios %}
+                Conecte-se com nossa rede de professores que oferecem aulas voluntárias. Consulte a disponibilidade.
+            {% else %}
+                Use a busca ou navegue pelos perfis para entrar em contato com quem vai te auxiliar no aprendizado.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Barra de Busca -->
+    <div class="flex justify-center mb-6">
+        <div class="w-full max-w-2xl">
+            <form method="GET" action="{% if somente_voluntarios %}{% url 'users:lista_voluntarios' %}{% else %}{% url 'users:lista_professores' %}{% endif %}" 
+                  class="flex shadow-md rounded-full bg-white border border-gray-200">
+                <input
+                    type="search"
+                    name="q"
+                    class="flex-grow px-5 py-3 text-gray-700 rounded-l-full focus:outline-none focus:ring-2 focus:ring-amber-500 border-none"
+                    placeholder="Buscar por nome, disciplina ou cidade..."
+                    aria-label="Search"
+                    value="{{ request.GET.q|default:'' }}"
+                >
+                <!-- Botão de busca Mostarda -->
+                <button class="bg-amber-500 text-white rounded-r-full px-6 py-3 font-semibold hover:bg-amber-600 transition duration-150" type="submit">
+                    <i class="fas fa-search mr-2 sm:mr-0"></i>
+                    <span class="hidden sm:inline">Buscar</span>
+                </button>
+                {% if request.GET.q %}
+                    <a href="{% if somente_voluntarios %}{% url 'users:lista_voluntarios' %}{% else %}{% url 'users:lista_professores' %}{% endif %}" 
+                       class="text-gray-500 hover:text-gray-700 rounded-full ml-2 px-4 py-3 transition duration-150 hidden sm:block">Limpar</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <!-- Mensagens de Feedback -->
+    {% if messages %}
+        <div class="max-w-4xl mx-auto space-y-3 mb-4">
+            {% for message in messages %}
+            <div class="p-3 text-sm rounded-lg shadow-md 
+                {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-teal-100 text-teal-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Listagem de Professores -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% if professores %}
+            {% for user_perfil in professores %}
+                <!-- Card do Professor -->
+                <div class="bg-white h-full shadow-lg rounded-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+
+                    <div class="p-6 text-center flex flex-col items-center flex-grow">
+                        
+                        <!-- AJUSTE: Adicionada a tag <a> em volta da imagem/placeholder -->
+                        <a href="{% url 'users:perfil_detalhe' username=user_perfil.username %}">
+                            <!-- Foto de Perfil (Quadrada 1:1) -->
+                            {% if user_perfil.foto_perfil %}
+                                <!-- ALTERADO: de h-24 w-24 para h-72 w-72 -->
+                                <img src="{{ user_perfil.foto_perfil.url }}" class="rounded-lg mb-3 border-4 border-gray-500 h-72 w-72 object-cover" alt="Foto de {{ user_perfil.username }}">
+                            {% else %}
+                                <!-- Placeholder de Foto (Quadrado 1:1) -->
+                                <!-- ALTERADO: de h-24 w-24 para h-72 w-72 -->
+                                <div class="rounded-lg mb-3 border-4 border-gray-500 h-72 w-72 flex items-center justify-center bg-gray-200 text-gray-800 text-3xl font-bold">
+                                    {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+
+                        <!-- 1. Nome (Fonte Maior) -->
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                            <!-- CORREÇÃO: Corrigido typo de 'se_chamado' para 'ser_chamado' -->
+                            {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username }}
+                        </h2>
+                        
+                        <!-- Disciplinas -->
+                        <p class="text-gray-600 mb-2 text-sm">
+                            <i class="fas fa-book-open mr-1 text-gray-500"></i>
+                            <strong>{{ user_perfil.professorprofile.disciplinas|truncatechars:50|default:"Não informado" }}</strong>
+                        </p>
+
+                        <!-- 3. ADICIONADO: Cidade -->
+                        <p class="text-gray-600 mb-2 text-sm">
+                            <i class="fas fa-map-marker-alt mr-1 text-gray-500"></i>
+                            {{ user_perfil.cidade|default:"Local não informado" }}
+                        </p>
+
+                        <!-- 4. ADICIONADO: Modalidade -->
+                        <p class="text-gray-600 mb-3 text-sm">
+                            <i class="fas fa-chalkboard-teacher mr-1 text-gray-500"></i>
+                            Modalidade: <strong>{{ user_perfil.professorprofile.get_modalidades_display }}</strong>
+                        </p>
+
+                        <!-- Tarifa / Voluntário (Separados) -->
+                        <div class="mb-4 flex flex-wrap justify-center gap-2">
+                            
+                            {% if user_perfil.professorprofile.is_voluntario %}
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Aula Gratuita</span>
+                            {% endif %}
+                            
+                            {% if user_perfil.professorprofile.tarifa_hora and user_perfil.professorprofile.tarifa_hora > 0 %}
+                                <!-- Badge de Tarifa Cinza -->
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-800">
+                                    R$ {{ user_perfil.professorprofile.tarifa_hora|floatformat:2 }} / hora
+                                </span>
+                            {% elif not user_perfil.professorprofile.is_voluntario %}
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Tarifa a Negociar</span>
+                            {% endif %}
+                            
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="mt-auto w-full pt-4 border-t border-gray-100">
+                            <!-- Botão Secundário (Outline Cinza) -->
+                            <a href="{% url 'users:perfil_detalhe' username=user_perfil.username %}" class="inline-block bg-white text-gray-700 font-semibold px-4 py-2 rounded-md border border-gray-400 hover:bg-gray-100 text-sm transition duration-150 mr-2">
+                                Ver Perfil <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                            <!-- Botão Primário (Sólido Mostarda) -->
+                            <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" class="inline-block bg-amber-500 text-white font-semibold px-4 py-2 rounded-md hover:bg-amber-600 text-sm transition duration-150">
+                                Contatar <i class="fas fa-envelope ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Mensagem de Sem Resultados -->
+            <div class="md:col-span-2 lg:col-span-3 text-center my-10">
+                <!-- Alerta Mostarda -->
+                <div class="bg-amber-50 border border-amber-300 text-amber-800 p-8 rounded-lg shadow-md max-w-lg mx-auto">
+                    <i class="fas fa-exclamation-circle fa-2x mb-3 text-amber-500"></i>
+                    <h4 class="text-xl font-bold">Nenhum professor encontrado!</h4>
+                    <p class="mt-2">Tente refinar sua busca ou volte para a <a href="{% url 'users:lista_professores' %}" class="font-bold underline hover:text-amber-900">lista completa de professores</a>.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
+
