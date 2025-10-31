@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
+    'storages', # ADICIONADO: Para suporte ao Amazon S3
 ]
 
 MIDDLEWARE = [
@@ -123,15 +124,11 @@ USE_TZ = True
 
 
 # ----------------------------------------------------
-# CONFIGURAÇÃO DE ARQUIVOS ESTÁTICOS E DE MÍDIA
+# CONFIGURAÇÃO DE ARQUIVOS ESTÁTICOS
 # ----------------------------------------------------
 
 # URL que o navegador usa para acessar os arquivos
 STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-
-# Pasta onde os arquivos de MÍDIA (uploads) serão salvos
-MEDIA_ROOT = BASE_DIR / 'media'
 
 # Diretórios onde o Django procura arquivos estáticos em DESENVOLVIMENTO
 STATICFILES_DIRS = [
@@ -164,3 +161,32 @@ EMAIL_SUBJECT_PREFIX = '[Professores Voluntários] '
 
 # CONFIGURAÇÃO DE USUÁRIO CUSTOMIZADO
 AUTH_USER_MODEL = 'users.CustomUser'
+
+
+# ----------------------------------------------------
+# CONFIGURAÇÃO DE ARQUIVOS DE MÍDIA (AMAZON S3)
+# ----------------------------------------------------
+
+# Só use S3 se estiver em produção (quando a var 'RENDER' existir)
+if 'RENDER' in os.environ:
+    # --- Configuração de Mídia (Uploads) para Amazon S3 ---
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1') # Defina sua região
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_FILE_OVERWRITE = False # Não sobrescrever arquivos com o mesmo nome
+
+    # Define o backend de armazenamento padrão para arquivos de mídia
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
+    # Define o local onde os arquivos de mídia serão salvos no bucket
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
+    # O Django ainda precisa de um root local temporário para manipulação de arquivos
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+else:
+    # --- Configuração local (desenvolvimento) ---
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+
