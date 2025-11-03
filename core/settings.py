@@ -24,7 +24,7 @@ ALLOWED_HOSTS = []
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
     # Adicione também o seu domínio customizado se você o configurou
     # ALLOWED_HOSTS.append('www.professorcerto.com') 
 
@@ -32,43 +32,43 @@ if RENDER_EXTERNAL_HOSTNAME:
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'users',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'users',
     # REMOVIDO: 'storages' (não é mais necessário com o Disco Persistente)
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    # ADICIONADO: WhiteNoise Middleware (para arquivos CSS/JS estáticos)
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    # ADICIONADO: WhiteNoise Middleware (para arquivos CSS/JS estáticos)
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-      D   },
-    },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
@@ -77,20 +77,20 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # Configuração de banco de dados para produção (Render) e fallback para local (sqlite3)
 DATABASES = {
-    'default': dj_database_url.config(
-        # Usa o sqlite3 como padrão se a DATABASE_URL (do Render) não for encontrada
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
-    )
+    'default': dj_database_url.config(
+        # Usa o sqlite3 como padrão se a DATABASE_URL (do Render) não for encontrada
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 
@@ -142,4 +142,3 @@ EMAIL_SUBJECT_PREFIX = '[Professor Certo] '
 
 # CONFIGURAÇÃO DE USUÁRIO CUSTOMIZADO
 AUTH_USER_MODEL = 'users.CustomUser'
-
