@@ -26,10 +26,15 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 
-# 4. ADIÇÃO PARA SERVIR ARQUIVOS EM MODO DE DESENVOLVIMENTO
-# Isso dirá ao Django para encontrar e servir seu 'logo.jpg' e
-# futuras fotos de perfil.
+# 4. ADIÇÃO PARA SERVIR ARQUIVOS DE MÍDIA
+
+# Em MODO DE DESENVOLVIMENTO (DEBUG=True)
+# Isso permite que o runserver local encontre suas fotos de perfil
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # (Não precisamos de STATIC_URL, o WhiteNoise cuida disso)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# 5. REMOVIDO: Bloco de Mídia em Produção (WhiteNoise cuidará disso no wsgi.py)
+# if not settings.DEBUG:
+#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
