@@ -14,9 +14,14 @@ application = get_wsgi_application()
 
 # 1. Envolve com o WhiteNoise para servir ARQUIVOS ESTÁTICOS (logo, css)
 # O WhiteNoise busca arquivos do STATIC_ROOT (que o 'collectstatic' criou)
+# Esta linha é OBRIGATÓRIA para o logo, css, etc.
 application = WhiteNoise(application, root=settings.STATIC_ROOT)
 
-# 2. Adiciona a capacidade de servir ARQUIVOS DE MÍDIA (fotos de perfil)
-# O WhiteNoise agora também servirá arquivos do MEDIA_ROOT (o Disco Persistente)
-if settings.MEDIA_ROOT:
-    application.add_files(settings.MEDIA_ROOT, prefix=settings.MEDIA_URL)
+# 2. REMOVIDO: O bloco de arquivos de mídia foi removido.
+# O WhiteNoise (com add_files) não é adequado para arquivos de mídia
+# (como fotos de perfil) porque ele só escaneia a pasta no startup.
+# O upload de arquivos não seria detectado.
+# Vamos configurar o 'urls.py' para servir esses arquivos.
+#
+# if settings.MEDIA_ROOT:
+#    application.add_files(settings.MEDIA_ROOT, prefix=settings.MEDIA_URL)
