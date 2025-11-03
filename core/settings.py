@@ -97,7 +97,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 LANGUAGE_CODE = 'pt-br' 
 TIME_ZONE = 'America/Sao_Paulo' 
-USE_I1N = True
+USE_I18N = True
 USE_TZ = True
 
 
@@ -151,9 +151,9 @@ if 'RENDER' in os.environ:
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
     EMAIL_HOST_USER = 'apikey' # Isso é fixo, o nome de usuário é 'apikey'
-    EMAIL_HOST_PASSWORD = os.environ.get('SG.q-EXVDMEQPy6ZkFJ5RY01A.vTGKkyMN38c5fm7oGTsQVtjbBDkT6SaxuvUvDuZ7yFQEY')
-    DEFAULT_FROM_EMAIL = os.environ.get('professorcerto.contato@gmail.com') # O e-mail que você verificou no SendGrid
+    EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL') # O e-mail que você verificou no SendGrid
 else:
     # Se estiver local (DEBUG=True), continue usando o console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'professorcerto.contato@gmail.com'
+    DEFAULT_FROM_EMAIL = 'noreply@desenvolvimento.com'
