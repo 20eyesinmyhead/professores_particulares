@@ -97,7 +97,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 LANGUAGE_CODE = 'pt-br' 
 TIME_ZONE = 'America/Sao_Paulo' 
-USE_I18N = True
+USE_I1N = True
 USE_TZ = True
 
 
@@ -134,11 +134,26 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Configuração de E-mail (AINDA EM MODO DE DESENVOLVIMENTO - NÃO ENVIA E-MAILS REAIS)
-# (Para enviar e-mails reais, você precisará configurar o SendGrid ou similar)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@professorcerto.com'
-EMAIL_SUBJECT_PREFIX = '[Professor Certo] '
-
 # CONFIGURAÇÃO DE USUÁRIO CUSTOMIZADO
 AUTH_USER_MODEL = 'users.CustomUser'
+
+# ----------------------------------------------------
+# CONFIGURAÇÃO DE E-MAIL (PRODUÇÃO E DESENVOLVIMENTO)
+# ----------------------------------------------------
+
+# Prefixo para todos os e-mails
+EMAIL_SUBJECT_PREFIX = '[Professor Certo] '
+
+# Só use o SendGrid (SMTP) se estiver em produção (no Render)
+if 'RENDER' in os.environ:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'apikey' # Isso é fixo, o nome de usuário é 'apikey'
+    EMAIL_HOST_PASSWORD = os.environ.get('SG.q-EXVDMEQPy6ZkFJ5RY01A.vTGKkyMN38c5fm7oGTsQVtjbBDkT6SaxuvUvDuZ7yFQEY')
+    DEFAULT_FROM_EMAIL = os.environ.get('professorcerto.contato@gmail.com') # O e-mail que você verificou no SendGrid
+else:
+    # Se estiver local (DEBUG=True), continue usando o console
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'professorcerto.contato@gmail.com'
