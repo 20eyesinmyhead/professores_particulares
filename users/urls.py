@@ -45,4 +45,7 @@ urlpatterns = [
     
     # Contato com um professor específico (usa a PK do CustomUser professor)
     path('contato/<int:professor_pk>/', views.contato_professor, name='contato_professor'),
+
+    # Rota para a página 'Sobre Nós'
+    path('sobre/', views.sobre_nos, name='sobre_nos'),
 ]

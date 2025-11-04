@@ -12,5 +12,8 @@ __pycache__/
 # Mídia (uploads de usuários)
 media/
 
+# Logs
+*.log
+
 # Arquivos estáticos coletados
 staticfiles/

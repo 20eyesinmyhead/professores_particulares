@@ -69,6 +69,14 @@ def registro(request):
 
     return render(request, 'users/registro.html', {'form': form})
 
+
+def sobre_nos(request):
+    """
+    Renderiza a página 'Sobre Nós'.
+    """
+    return render(request, 'users/sobre_nos.html')
+
+
 # ==============================================================================
 # 2. EDIÇÃO E VISUALIZAÇÃO DE PERFIL
 # ==============================================================================
