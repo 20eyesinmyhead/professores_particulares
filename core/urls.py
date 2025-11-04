@@ -5,11 +5,17 @@ from django.conf.urls.static import static
 # ADICIONADO: Import para servir ficheiros em produção
 from django.views.static import serve 
 
+# 1. IMPORTAR A VIEW 'sobre_nos' (NECESSÁRIO PARA A ROTA)
+from users.views import sobre_nos
+
 urlpatterns = [
     # Rota de Administrador
     path('admin/', admin.site.urls),
     
-    # Rota Raiz (vai para o app 'users')
+    # 2. ADICIONADA A ROTA PARA 'SOBRE NÓS' (CORRIGE O ERRO 500)
+    path('sobre/', sobre_nos, name='sobre_nos'),
+    
+    # Rota Raiz (vai para o app 'users' - Lista de Professores)
     path('', include('users.urls', namespace='users')),
 
     # Rotas de autenticação padrão (para reset de senha, etc.)
@@ -32,3 +38,4 @@ if not settings.DEBUG:
             'document_root': settings.MEDIA_ROOT,
         }),
     ]
+

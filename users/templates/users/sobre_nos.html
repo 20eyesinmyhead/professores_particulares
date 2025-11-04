@@ -1,0 +1,62 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Sobre Nós{% endblock %}
+
+{% block content %}
+<div class="bg-white py-16 lg:py-24">
+    <div class="container mx-auto px-4">
+
+        <!-- Título da Página -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900">Sobre o Professor Certo</h1>
+            <p class="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+                Conectando conhecimento e oportunidade, de forma segura e direta.
+            </p>
+        </div>
+
+        <!-- Seção de Conteúdo 1: Nossa Missão -->
+        <div class="max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-bullseye text-amber-500 mr-3"></i>
+                Nossa Missão
+            </h2>
+            <p class="text-gray-700 text-lg leading-relaxed mb-4">
+                Acreditamos que a educação de qualidade deve ser acessível a todos. Nossa plataforma foi criada para ser a ponte mais segura e eficiente entre alunos que buscam aprender e professores qualificados e apaixonados por ensinar.
+            </p>
+            <p class="text-gray-700 text-lg leading-relaxed">
+                Valorizamos a conexão humana no aprendizado, seja ela presencial ou online. Facilitamos o contato seguro e direto, permitindo que professores e alunos encontrem a combinação perfeita para seus objetivos, com um foco especial na privacidade e na segurança dos seus dados.
+            </p>
+        </div>
+
+        <!-- Seção de Conteúdo 2: Para Alunos e Professores -->
+        <div class="max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-user-graduate text-amber-500 mr-3"></i>
+                Para Alunos
+            </h2>
+            <p class="text-gray-700 text-lg leading-relaxed mb-4">
+                Encontre exatamente o que você precisa, desde reforço escolar até aulas de programação. Navegue por perfis detalhados, veja as especialidades, metodologias e encontre professores voluntários dispostos a ajudar gratuitamente.
+            </p>
+
+            <h2 class="text-3xl font-bold text-gray-900 mb-4 mt-8 flex items-center">
+                <i class="fas fa-chalkboard-teacher text-amber-500 mr-3"></i>
+                Para Professores
+            </h2>
+            <p class="text-gray-700 text-lg leading-relaxed mb-4">
+                Crie seu perfil profissional em minutos. Defina suas tarifas, especifique suas disciplinas e horários. Se você deseja fazer trabalho voluntário, nossa plataforma oferece um espaço dedicado para você se conectar com alunos que precisam de ajuda, tudo isso sem expor seu e-mail ou telefone publicamente.
+            </p>
+        </div>
+
+        <!-- Seção 3: CTA (Chamada para Ação) -->
+        <div class="text-center">
+            <a href="{% url 'users:registro' %}"
+               class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-lg transition duration-300 transform hover:scale-105">
+                <i class="fas fa-user-plus mr-2"></i> Junte-se à nossa comunidade
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}
+
