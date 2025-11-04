@@ -30,6 +30,17 @@ from .forms import (
 
 
 # ==============================================================================
+# 0. PÁGINAS ESTÁTICAS (Sobre Nós)
+# ==============================================================================
+
+def sobre_nos(request):
+    """
+    Renderiza a página 'Sobre Nós'.
+    """
+    return render(request, 'users/sobre_nos.html')
+
+
+# ==============================================================================
 # 1. AUTENTICAÇÃO E REGISTRO
 # ==============================================================================
 
@@ -68,13 +79,6 @@ def registro(request):
         form = CustomUserCreationForm()
 
     return render(request, 'users/registro.html', {'form': form})
-
-
-def sobre_nos(request):
-    """
-    Renderiza a página 'Sobre Nós'.
-    """
-    return render(request, 'users/sobre_nos.html')
 
 
 # ==============================================================================
@@ -160,27 +164,26 @@ def editar_perfil(request):
             messages.error(request, 'Erro ao salvar o perfil geral. Verifique os campos.')
         
         # Se a validação falhou (POST), renderiza os formulários com os erros
-        context = {
-            'user_form': user_form,
-            'professor_form': profile_form, # Será None ou o formulário inválido
-            'is_professor': user_form.cleaned_data.get('is_professor', user.is_professor),
-        }
+        if request.method == 'POST':
+            context = {
+                'user_form': user_form,
+                'professor_form': profile_form, # Será None ou o formulário inválido
+                'is_professor': user_form.cleaned_data.get('is_professor', user.is_professor),
+            }
+        else: # Lógica do GET request (quando a página é carregada)
+            user_form = CustomUserEditForm(instance=user)
+            if professor_profile:
+                profile_form = ProfessorProfileForm(instance=professor_profile)
+            else:
+                profile_form = None
+
+            context = {
+                'user_form': user_form,
+                'professor_form': profile_form,
+                'is_professor': user.is_professor,
+            }
+            
         return render(request, 'users/editar_perfil.html', context)
-
-    
-    # Lógica do GET request (quando a página é carregada)
-    user_form = CustomUserEditForm(instance=user)
-    if professor_profile:
-        profile_form = ProfessorProfileForm(instance=professor_profile)
-    else:
-        profile_form = None
-
-    context = {
-        'user_form': user_form,
-        'professor_form': profile_form,
-        'is_professor': user.is_professor,
-    }
-    return render(request, 'users/editar_perfil.html', context)
 
 
 def perfil_detalhe(request, username):
@@ -204,6 +207,29 @@ def perfil_detalhe(request, username):
         'tipo_perfil': tipo_perfil,
     }
     return render(request, 'users/perfil_detalhe.html', context)
+
+
+# ADICIONADO: Nova view para "Minhas Mensagens"
+@login_required
+def minhas_mensagens(request):
+    """
+    Exibe todas as mensagens enviadas E recebidas pelo usuário logado.
+    """
+    user = request.user
+    
+    # Filtra mensagens onde o usuário é o remetente (aluno) OU o destinatário (professor)
+    # O .select_related() otimiza a consulta, buscando os dados do aluno e professor
+    # na mesma query.
+    mensagens = ContactProfessor.objects.filter(
+        Q(aluno=user) | Q(professor=user)
+    ).select_related('aluno', 'professor')
+    
+    # A ordenação (ordering = ['-data_envio']) já está definida no Meta do modelo ContactProfessor.
+
+    context = {
+        'mensagens': mensagens
+    }
+    return render(request, 'users/minhas_mensagens.html', context)
 
 
 # ==============================================================================
@@ -273,7 +299,7 @@ def contato_professor(request, professor_pk):
     aluno_email = request.user.email
 
     if request.method == 'POST':
-        form = ContactProfessorForm(request.POST)
+        form = ContactProfessorForm(request.POST, user=request.user) # Passa o usuário para o form
 
         if form.is_valid():
             with transaction.atomic():
@@ -284,6 +310,17 @@ def contato_professor(request, professor_pk):
 
                 email_confirmado_pelo_aluno = form.cleaned_data.get('confirmar_email')
 
+                # -----------------------------------------------------------------
+                # Captura os novos campos (telefone e whatsapp)
+                # -----------------------------------------------------------------
+                incluir_telefone = form.cleaned_data.get('incluir_telefone')
+                is_whatsapp = form.cleaned_data.get('is_whatsapp')
+                
+                aluno_telefone = None
+                if incluir_telefone and request.user.telefone:
+                    aluno_telefone = request.user.telefone
+                # -----------------------------------------------------------------
+
                 try:
                     # Renderiza o corpo do email a partir do template HTML
                     html_message = render_to_string('emails/notificacao_professor.html', {
@@ -292,6 +329,11 @@ def contato_professor(request, professor_pk):
                         'assunto_mensagem': contato.assunto,
                         'mensagem_detalhada': contato.mensagem,
                         'aluno_email': email_confirmado_pelo_aluno,
+                        
+                        # Passa as novas variáveis para o template de e-mail
+                        'aluno_telefone': aluno_telefone, # (Pode ser None)
+                        'is_whatsapp': is_whatsapp, # (True/False)
+                        
                         'link_perfil_aluno': request.build_absolute_uri(
                             redirect('users:perfil_detalhe', username=request.user.username).url
                         )
@@ -331,7 +373,7 @@ def contato_professor(request, professor_pk):
             messages.error(request, "Erro ao enviar a mensagem. Verifique os campos do formulário.")
 
     else: # GET request
-        form = ContactProfessorForm(initial={'confirmar_email': aluno_email})
+        form = ContactProfessorForm(initial={'confirmar_email': aluno_email}, user=request.user) # Passa o usuário
 
     context = {
         'professor': professor,
@@ -362,24 +404,9 @@ def excluir_conta(request):
         # Envia uma mensagem de sucesso (será exibida na próxima página)
         messages.success(request, 'Sua conta foi excluída permanentemente.')
         
-        # CORREÇÃO: Redireciona para o nome da rota da lista de professores,
-        # que é a nossa página inicial.
+        # Redireciona para a nova página Home
         return redirect('users:lista_professores')
 
     # Se for um GET (primeira vez que o usuário visita a página),
     # apenas mostra o template de confirmação.
     return render(request, 'users/excluir_conta.html')
-
-
-@login_required
-def minhas_mensagens(request):
-    """
-    Exibe todas as mensagens recebidas pelo usuário logado.
-    """
-    # Filtra as mensagens onde o usuário logado é o professor (destinatário)
-    mensagens_recebidas = ContactProfessor.objects.filter(professor=request.user).order_by('-data_envio')
-
-    context = {
-        'mensagens': mensagens_recebidas,
-    }
-    return render(request, 'users/minhas_mensagens.html', context)
