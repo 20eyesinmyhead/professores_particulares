@@ -370,3 +370,16 @@ def excluir_conta(request):
     # apenas mostra o template de confirmação.
     return render(request, 'users/excluir_conta.html')
 
+
+@login_required
+def minhas_mensagens(request):
+    """
+    Exibe todas as mensagens recebidas pelo usuário logado.
+    """
+    # Filtra as mensagens onde o usuário logado é o professor (destinatário)
+    mensagens_recebidas = ContactProfessor.objects.filter(professor=request.user).order_by('-data_envio')
+
+    context = {
+        'mensagens': mensagens_recebidas,
+    }
+    return render(request, 'users/minhas_mensagens.html', context)

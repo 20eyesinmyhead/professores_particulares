@@ -67,6 +67,10 @@
                        class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 hover:scale-[1.03]">
                         <i class="fas fa-edit me-2"></i> Editar Meu Perfil
                     </a>
+                    <a href="{% url 'users:minhas_mensagens' %}"
+                        class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 hover:scale-[1.03]">
+                        <i class="fas fa-inbox me-2"></i> Minhas Mensagens
+                    </a>
                 {% elif request.user.is_authenticated and tipo_perfil == 'professor' %}
                     <!-- Botão de Contato para outros Usuários -->
                     <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" 

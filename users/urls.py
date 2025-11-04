@@ -48,4 +48,7 @@ urlpatterns = [
 
     # Rota para a página 'Sobre Nós'
     path('sobre/', views.sobre_nos, name='sobre_nos'),
+
+    # Rota para a página 'Minhas Mensagens'
+    path('mensagens/', views.minhas_mensagens, name='minhas_mensagens'),
 ]
