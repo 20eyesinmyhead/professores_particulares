@@ -85,6 +85,8 @@ def registro(request):
 # 2. EDIÇÃO E VISUALIZAÇÃO DE PERFIL
 # ==============================================================================
 
+# ... (suas importações e outras views) ...
+
 @login_required
 def editar_perfil(request):
     """
@@ -101,35 +103,29 @@ def editar_perfil(request):
     if request.method == 'POST':
         user_form = CustomUserEditForm(request.POST, request.FILES, instance=user)
         
-        profile_form = None
-        # Instancia o profile_form apenas se o perfil já existia
-        if professor_profile:
-            profile_form = ProfessorProfileForm(request.POST, request.FILES, instance=professor_profile)
+        # Sempre instancia o profile_form se o usuário é ou pretende ser professor
+        # Isso garante que ele esteja disponível para validação mesmo se recém-criado
+        profile_form = ProfessorProfileForm(request.POST, request.FILES, instance=professor_profile) if user.is_professor or 'is_professor' in request.POST else None
 
-        # Valida o formulário principal do usuário
         if user_form.is_valid():
             try:
-                # Inicia o bloco de transação
                 with transaction.atomic():
                     updated_user = user_form.save() # Salva o CustomUser (is_professor é atualizado)
 
-                    created_profile_now = False # Flag para saber se o perfil foi criado NESTA requisição
+                    created_profile_now = False
                     
-                    # --- LÓGICA DE PERFIL PROFESSOR PÓS-SAVE ---
-                    
-                    # Caso 1: O usuário MARCOU 'is_professor' (ou já era professor)
                     if updated_user.is_professor:
-                        
                         # Garante que o perfil exista (cria se for a primeira vez)
                         professor_profile, created_profile_now = ProfessorProfile.objects.get_or_create(user=updated_user)
                         
-                        # Se o perfil foi recém-criado, o 'profile_form' anterior era None
-                        # Precisamos instanciá-lo agora com os dados do POST
-                        if created_profile_now:
+                        # Se o perfil foi recém-criado ou já existia, agora temos que garantir que
+                        # o profile_form está instanciado com a instância correta
+                        if not profile_form: # Se não foi instanciado antes (e o user agora é professor)
                             profile_form = ProfessorProfileForm(request.POST, request.FILES, instance=professor_profile)
+                        else: # Se já existia, atualiza a instância para garantir que estamos usando o objeto salvo ou recém-criado
+                            profile_form.instance = professor_profile 
                         
-                        # Validamos o formulário de professor (seja ele novo ou existente)
-                        if profile_form and profile_form.is_valid():
+                        if profile_form.is_valid():
                             profile_form.save()
                             
                             # Lógica de REATIVAÇÃO
@@ -140,50 +136,53 @@ def editar_perfil(request):
                             if created_profile_now:
                                 messages.info(request, 'Perfil de professor ativado! Preencha seus dados profissionais.')
                         
-                        elif profile_form and not profile_form.is_valid():
-                            # Se o user_form era válido mas o profile_form (recém-criado ou existente) não era
+                        else: # Se o profile_form não for válido
                             messages.error(request, 'Erro ao salvar o perfil profissional. Verifique os campos.')
-                            raise transaction.Rollback # Força o rollback (desfaz o user_form.save())
-                        
-                    # Caso 2: O usuário DESMARCOU 'is_professor'
+                            # Não precisa de raise transaction.Rollback aqui, pois se não houver redirect,
+                            # a view irá renderizar o template com os erros no final do bloco POST.
+                            # Se quisermos forçar o rollback e parar tudo, poderíamos, mas a renderização
+                            # com os erros do profile_form é mais amigável.
+                    
                     elif not updated_user.is_professor and professor_profile:
+                        # Se o usuário desmarcou is_professor e já tinha um perfil
                         professor_profile.status_ativo = False # Desativa (não aparece na lista)
                         professor_profile.save(update_fields=['status_ativo'])
                         messages.info(request, 'Seu perfil de professor foi desativado.')
 
-                # Se a transação foi bem-sucedida (não houve Rollback)
                 messages.success(request, 'Seu perfil foi atualizado com sucesso!')
                 return redirect('users:perfil_detalhe', username=user.username)
             
-            except transaction.Rollback:
-                # Se o rollback foi forçado (erro no profile_form),
-                # A view continua para renderizar os formulários com erros.
-                pass 
+            except Exception as e: # Captura qualquer exceção dentro da transação
+                messages.error(request, f"Ocorreu um erro inesperado ao salvar: {e}")
+                # A transação será revertida automaticamente se houver uma exceção não tratada aqui.
+                # Não precisamos de um `pass` vazio que leva a um `return None`.
 
         else: # Se user_form não for válido
             messages.error(request, 'Erro ao salvar o perfil geral. Verifique os campos.')
         
-        # Se a validação falhou (POST), renderiza os formulários com os erros
-        if request.method == 'POST':
-            context = {
-                'user_form': user_form,
-                'professor_form': profile_form, # Será None ou o formulário inválido
-                'is_professor': user_form.cleaned_data.get('is_professor', user.is_professor),
-            }
-        else: # Lógica do GET request (quando a página é carregada)
-            user_form = CustomUserEditForm(instance=user)
-            if professor_profile:
-                profile_form = ProfessorProfileForm(instance=professor_profile)
-            else:
-                profile_form = None
-
-            context = {
-                'user_form': user_form,
-                'professor_form': profile_form,
-                'is_professor': user.is_professor,
-            }
-            
+        # Este bloco de renderização agora é o fallback para qualquer falha de validação ou erro na transação
+        # dentro do método POST, garantindo que SEMPRE haja um HttpResponse.
+        context = {
+            'user_form': user_form,
+            'professor_form': profile_form,
+            'is_professor': user_form.cleaned_data.get('is_professor', user.is_professor if user_form.is_valid() else False),
+        }
         return render(request, 'users/editar_perfil.html', context)
+    
+    else: # GET request (quando a página é carregada)
+        user_form = CustomUserEditForm(instance=user)
+        if professor_profile:
+            profile_form = ProfessorProfileForm(instance=professor_profile)
+        else:
+            profile_form = None
+
+        context = {
+            'user_form': user_form,
+            'professor_form': profile_form,
+            'is_professor': user.is_professor,
+        }
+        return render(request, 'users/editar_perfil.html', context)
+
 
 
 def perfil_detalhe(request, username):

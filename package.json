@@ -1,0 +1,26 @@
+{
+  "name": "professores_particulares",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "tailwind:build": "tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --minify",
+    "tailwind:watch": "tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/20eyesinmyhead/professores_particulares.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/20eyesinmyhead/professores_particulares/issues"
+  },
+  "homepage": "https://github.com/20eyesinmyhead/professores_particulares#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",   
+    "postcss": "^8.4.38",        
+    "tailwindcss": "^3.4.3"      
+  }
+}

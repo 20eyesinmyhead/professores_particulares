@@ -1,6 +1,4 @@
-# Ambiente Virtual
-venv/
-.venv/
+
 
 # Banco de Dados
 db.sqlite3*
@@ -17,3 +15,20 @@ media/
 
 # Arquivos estáticos coletados
 staticfiles/
+
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+.env/
+
+# Dependências do Node.js (MUITO IMPORTANTE)
+node_modules/
+
+# Arquivos de Sistema
+.DS_Store
+__pycache__/
+
+# Arquivos de IDE
+.vscode/
+.idea/
