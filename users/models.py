@@ -15,12 +15,18 @@ class CustomUserManager(BaseUserManager):
     Sobrescreve create_user e create_superuser.
     """
     def create_user(self, email, password=None, **extra_fields):
+        """Cria e salva um usuário com o email e senha fornecidos."""
         if not email:
             raise ValueError(_('O email deve ser fornecido'))
         email = self.normalize_email(email)
-        # O AbstractUser requer 'username', mas o CustomUserManager não está usando aqui.
-        # Adicionei o username de volta para compatibilidade com o AbstractUser/REQUIRED_FIELDS
-        username = extra_fields.get('username') or email.split('@')[0]
+
+        # Garante que 'username' seja tratado corretamente.
+        # Remove 'username' de extra_fields para evitar o erro de argumento duplicado.
+        username = extra_fields.pop('username', None)
+        if not username:
+            # Se o username não for fornecido, usa a parte local do email como padrão.
+            username = email.split('@')[0]
+
         user = self.model(email=email, username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)

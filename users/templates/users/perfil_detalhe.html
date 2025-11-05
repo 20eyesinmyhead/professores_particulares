@@ -24,27 +24,23 @@
     <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
         
         <!-- HEADER DO PERFIL (CUSTOM USER DATA) -->
-        <!-- Layout vertical forçado para acomodar a imagem grande -->
-        <div class="bg-gray-800 p-6 sm:p-8 text-white flex flex-col items-center space-y-4">
+        <div class="bg-gray-800 p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
             
             <!-- Foto de Perfil -->
             <div class="flex-shrink-0">
                 {% if user_perfil.foto_perfil %}
-                    <!-- ALTERADO: de h-28 w-28 rounded-full para h-72 w-72 rounded-lg (TAMANHO DA LISTA) -->
-                    <img class="h-72 w-72 rounded-lg object-cover ring-4 ring-white shadow-lg" 
+                    <img class="h-28 w-28 rounded-full object-cover ring-4 ring-white shadow-lg"
                          src="{{ user_perfil.foto_perfil.url }}" 
                          alt="Foto de Perfil de {{ user_perfil.como_deseja_ser_chamado }}">
                 {% else %}
-                    <!-- Placeholder grande e quadrado -->
-                    <div class="h-72 w-72 rounded-lg bg-gray-500 flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-lg">
+                    <div class="h-28 w-28 rounded-full bg-gray-500 flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-lg">
                         {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username|slice:":1"|upper }}
                     </div>
                 {% endif %}
             </div>
 
             <!-- Informações Básicas e Título -->
-            <!-- Layout centralizado (text-center) -->
-            <div class="text-center flex-grow">
+            <div class="text-center sm:text-left flex-grow">
                 <h1 class="text-4xl font-bold mb-1">
                     {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username }}
                 </h1>
@@ -63,21 +59,14 @@
                 {% endif %}
             </div>
 
-            <!-- Botões de Ação -->
-            <div class="mt-4 flex flex-col space-y-2">
+            <!-- Botões de Ação (CONVERTIDOS PARA TAILWIND E COR AMBER) -->
+            <div class="mt-4 sm:mt-0 flex flex-col space-y-2">
                 {% if request.user == user_perfil %}
                     <!-- Botão de Edição para o Próprio Usuário -->
                     <a href="{% url 'users:editar_perfil' %}" 
                        class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 hover:scale-[1.03]">
                         <i class="fas fa-edit me-2"></i> Editar Meu Perfil
                     </a>
-                    
-                    <!-- ADICIONADO: Botão Minhas Mensagens (só aparece se for o seu próprio perfil) -->
-                    <a href="{% url 'users:minhas_mensagens' %}" 
-                       class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 hover:scale-[1.03]">
-                        <i class="fas fa-inbox me-2"></i> Minhas Mensagens
-                    </a>
-                    
                 {% elif request.user.is_authenticated and tipo_perfil == 'professor' %}
                     <!-- Botão de Contato para outros Usuários -->
                     <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" 
@@ -199,3 +188,60 @@
                         
                         <!-- Detalhes da Aula -->
                         <div class="p-4 bg-yellow-100 rounded-lg border border-yellow-300">
+                            <h4 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-school me-2 text-yellow-700"></i> Detalhes e Metodologia da Aula</h4>
+                            <p class="text-gray-700 text-justify">{{ perfil_extensao.sobre_a_aula|default:"Sem detalhes sobre a metodologia."|linebreaksbr }}</p>
+
+                            <div class="mt-3 pt-2 border-t border-yellow-300">
+                                <span class="inline-flex items-center me-4 text-sm text-gray-700">
+                                    <i class="fas fa-globe me-1 {% if perfil_extensao.aceita_online %}text-green-500{% else %}text-red-500{% endif %}"></i>
+                                    Aulas Online:
+                                    <span class="font-semibold ms-1">{% if perfil_extensao.aceita_online %}Sim{% else %}Não{% endif %}</span>
+                                </span>
+                                <span class="inline-flex items-center text-sm text-gray-700">
+                                    <i class="fas fa-users me-1 {% if perfil_extensao.aceita_grupo %}text-green-500{% else %}text-red-500{% endif %}"></i>
+                                    Aulas em Grupo:
+                                    <span class="font-semibold ms-1">{% if perfil_extensao.aceita_grupo %}Sim{% else %}Não{% endif %}</span>
+                                </span>
+                                {% if perfil_extensao.modalidades %}
+                                    <p class="text-sm mt-2 text-gray-700"><span class="font-semibold">Local de Aula:</span> {{ perfil_extensao.modalidades }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                {% else %}
+                    <!-- SE O USUÁRIO FOR ALUNO -->
+                    <!-- (Esta seção já usava a paleta "amber") -->
+                    <div class="bg-amber-50 p-6 rounded-lg shadow-xl border-l-4 border-amber-500">
+                        <h3 class="text-2xl font-bold text-amber-800 mb-4 flex items-center">
+                            <i class="fas fa-user-circle text-amber-600 me-3"></i> Minha Biografia
+                        </h3>
+                        <p class="text-gray-700 text-justify">{{ user_perfil.biografia|default:"Este usuário não adicionou uma biografia ainda."|linebreaksbr }}</p>
+
+                        <div class="mt-6 pt-4 border-t border-amber-200">
+                            <h4 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-history me-2 text-amber-600"></i> Histórico de Aprendizagem</h4>
+                            <p class="text-gray-600 text-justify">{{ user_perfil.historico_aprendizagem|default:"Sem histórico de aprendizado registrado."|linebreaksbr }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Link para Contato Rápido (Se o Perfil for de Professor e o usuário estiver logado) -->
+                {% if request.user.is_authenticated and tipo_perfil == 'professor' and request.user != user_perfil %}
+                    <div class="text-center p-4 bg-gray-100 rounded-lg shadow-md border border-gray-200">
+                        <p class="mb-3 text-lg font-semibold text-gray-700">Interessado nas aulas de {{ user_perfil.como_deseja_ser_chamado }}?</p>
+                        <!-- ALTERADO: Botão de 'btn-success' para Tailwind 'bg-amber-500' -->
+                        <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}"
+                           class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-xl hover:shadow-2xl transition duration-300">
+                            <i class="fas fa-hand-point-right me-2"></i> Enviar Mensagem Agora
+                        </a>
+                    </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock content %}

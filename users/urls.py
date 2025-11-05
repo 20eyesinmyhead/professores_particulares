@@ -8,7 +8,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
     # 1. AUTENTICAÇÃO PADRÃO (Django Auth)
     # ----------------------------------------------------------------------
-    # CORREÇÃO: Usa auth_views para evitar o AttributeError
+    # Opcional: usar o LoginView padrão, mas apontando para nosso template
     path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     
@@ -25,9 +25,6 @@ urlpatterns = [
     # CORREÇÃO DE ORDEM: A rota MAIS ESPECÍFICA (excluir) deve vir ANTES da rota genérica (username)
     path('perfil/excluir/', views.excluir_conta, name='excluir_conta'),
     
-    # ADICIONADO: Nova rota para "Minhas Mensagens"
-    path('perfil/mensagens/', views.minhas_mensagens, name='minhas_mensagens'),
-
     # Detalhe de Perfil (Mostra o perfil de qualquer usuário, usa o username)
     path('perfil/<str:username>/', views.perfil_detalhe, name='perfil_detalhe'),
     
@@ -36,6 +33,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
     
     # Lista principal de professores (com busca)
+    # Rota raiz do app 'users' (pode ser /professores/ no projeto principal)
     path('', views.lista_professores, name='lista_professores'),
     
     # Lista de professores voluntários (usa o mesmo view com um argumento extra)
@@ -48,6 +46,4 @@ urlpatterns = [
     # Contato com um professor específico (usa a PK do CustomUser professor)
     path('contato/<int:professor_pk>/', views.contato_professor, name='contato_professor'),
 
-    # Rota para a página 'Sobre Nós'
-    path('sobre/', views.sobre_nos, name='sobre_nos'),
 ]
