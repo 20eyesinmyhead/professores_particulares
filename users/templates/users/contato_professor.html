@@ -1,31 +1,35 @@
 {% extends 'base/base.html' %}
 {% load static %}
-{% load custom_tags %} 
-<!-- Carrega o filtro add_class -->
+{% load custom_tags %} {# Carrega o filtro 'add_class' para aplicar classes CSS aos campos do formulário. #}
 
+{# Define o título da página usando o nome do professor. O 'default' garante um fallback caso o nome não seja encontrado. #}
 {% block title %}Contatar {{ professor.como_deseja_ser_chamado|default:professor.username }}{% endblock %}
 
+{# Início do bloco de conteúdo principal desta página. #}
 {% block content %}
+
+{# Container principal que centraliza o formulário na página e define o tamanho máximo. #}
 <div class="container mx-auto p-4 md:p-8 max-w-2xl mt-4">
 
-    <!-- Mensagens do Django -->
+    {# Seção para exibir mensagens de feedback do Django (sucesso, erro, alerta). #}
     {% if messages %}
         <div class="mb-4 space-y-3">
             {% for message in messages %}
             <div class="p-3 text-sm rounded-lg shadow-md 
+                {# Altera a cor do alerta com base no tipo da mensagem (definido por 'message.tags'). #}
                 {% if message.tags == 'success' %}bg-green-100 text-green-700
                 {% elif message.tags == 'error' %}bg-red-100 text-red-700
-                {% else %}bg-amber-100 text-amber-700{% endif %}"> <!-- AJUSTADO: de teal para amber -->
+                {% else %}bg-amber-100 text-amber-700{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
         </div>
     {% endif %}
 
+    {# Painel principal que contém o cabeçalho, informações do professor e o formulário de contato. #}
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-100">
         <div class="text-center mb-6">
-            <!-- Ícone de E-mail -->
-            <!-- AJUSTADO: de text-teal-500 para text-amber-500 -->
+            {# Ícone visual para reforçar o propósito da página (contato por e-mail). #}
             <i class="fas fa-envelope-open-text text-6xl text-amber-500 mb-4"></i>
             <h1 class="text-3xl font-extrabold text-gray-800">
                 Fale com {{ professor.como_deseja_ser_chamado|default:professor.username }}
@@ -35,25 +39,23 @@
             </p>
         </div>
 
-        <!-- Informações Resumidas do Professor -->
+        {# Seção que exibe informações resumidas do professor para quem a mensagem será enviada. #}
         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
             <p class="font-semibold text-gray-700 flex items-center mb-1">
-                <!-- AJUSTADO: de text-teal-500 para text-amber-500 -->
                 <i class="fas fa-user-graduate mr-2 text-amber-500"></i> Professor(a): 
                 <span class="ml-2 font-normal">{{ professor.nome_completo|default:professor.username }}</span>
             </p>
             <p class="font-semibold text-gray-700 flex items-center">
-                <!-- AJUSTADO: de text-teal-500 para text-amber-500 -->
                 <i class="fas fa-book mr-2 text-amber-500"></i> Disciplinas: 
                 <span class="ml-2 font-normal">{{ professor.professorprofile.disciplinas|truncatechars:60|default:"Não especificada" }}</span>
             </p>
         </div>
 
-        <!-- Formulário de Contato -->
+        {# Formulário de contato para enviar uma mensagem ao professor. #}
         <form method="post" class="space-y-5">
-            {% csrf_token %}
+            {% csrf_token %} {# Tag de segurança obrigatória do Django para proteger contra ataques CSRF. #}
             
-            <!-- Exibe erros gerais do formulário -->
+            {# Exibe erros que não estão ligados a nenhum campo específico do formulário. #}
             {% if form.non_field_errors %}
                 <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                     {% for error in form.non_field_errors %}
@@ -62,35 +64,38 @@
                 </div>
             {% endif %}
 
+            {# Loop através de cada campo do formulário Django para renderizá-los dinamicamente. #}
             {% for field in form %}
                 <div class="form-group">
                     <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                         {{ field.label }}
+                        {# Adiciona um asterisco se o campo for obrigatório. #}
                         {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
                     </label>
                     
-                    <!-- Aplica classes Tailwind -->
-                    <!-- AJUSTADO: focus:ring-teal-500 e focus:border-teal-500 para amber -->
+                    {# Renderiza o campo do formulário, aplicando classes Tailwind CSS através do filtro 'add_class'. #}
                     {{ field|add_class:"mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500" }}
                     
+                    {# Exibe o texto de ajuda (help_text) para o campo, se houver. #}
                     {% if field.help_text %}
                         <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
                     {% endif %}
+                    {# Exibe erros específicos de validação para o campo, se houver. #}
                     {% for error in field.errors %}
                         <p class="text-red-500 text-sm mt-1">{{ error }}</p>
                     {% endfor %}
                 </div>
             {% endfor %}
             
+            {# Botão para submeter o formulário e enviar a mensagem. #}
             <button type="submit" 
                     class="w-full py-3 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shadow-lg transition duration-300 transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-amber-500 focus:ring-opacity-50">
-                <!-- AJUSTADO: classes bg-teal-*, hover:bg-teal-* e focus:ring-teal-* para amber -->
                 <i class="fas fa-paper-plane mr-2"></i> Enviar Mensagem
             </button>
         </form>
 
+        {# Link para cancelar e retornar à página de detalhes do perfil do professor. #}
         <p class="mt-6 text-center text-sm text-gray-500">
-            <!-- AJUSTADO: de text-teal-* e hover:text-teal-* para amber -->
             <a href="{% url 'users:perfil_detalhe' professor.username %}" class="text-amber-600 hover:text-amber-700 font-medium">
                 Cancelar e voltar ao perfil
             </a>

@@ -244,7 +244,7 @@ def lista_professores(request, somente_voluntarios=False):
     ativos_pks = ProfessorProfile.objects.filter(status_ativo=True).values_list('user_id', flat=True)
     professores = professores_base.filter(pk__in=ativos_pks).select_related('professorprofile')
 
-    titulo = "Encontre a Pessoa Certa!"
+    titulo = "Encontre o Professor Certo!"
     if somente_voluntarios:
         voluntarios_pks = ProfessorProfile.objects.filter(is_voluntario=True).values_list('user_id', flat=True)
         professores = professores.filter(pk__in=voluntarios_pks)

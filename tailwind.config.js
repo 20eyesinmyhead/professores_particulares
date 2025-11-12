@@ -8,7 +8,10 @@ module.exports = {
     // Adicione outros caminhos se você tiver classes Tailwind em outros tipos de arquivos
   ],
   theme: {
-    extend: {},
+    extend: {
+     
+      }
+    },
   },
   plugins: [],
 }
