@@ -1,0 +1,232 @@
+{% extends 'base/base.html' %} 
+{% load static %}
+{% load perfil_tags %} {% block title %}Perfil de {{ user_perfil.username }}{% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto p-4 md:p-8 mt-4">
+    
+    {% if messages %}
+        <div class="mb-4 space-y-3">
+            {% for message in messages %}
+            <div class="p-3 text-sm rounded-lg shadow-md 
+                {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+        
+        {# SEÇÃO DO CABEÇALHO SUPERIOR - AJUSTADA PARA IMAGEM QUADRADA E ALINHADA À ESQUERDA #}
+        {# Alterado `items-center` para `md:items-start` no container principal para alinhar ao topo/esquerda #}
+        <div class="bg-gray-800 p-6 sm:p-8 text-white flex flex-col md:flex-row md:justify-between items-center md:items-start space-y-4 md:space-y-0 md:space-x-8">
+            
+            {# BLOCO CONTENDO IMAGEM E INFORMAÇÕES BÁSICAS - AGRUPADOS E ALINHADOS À ESQUERDA #}
+            {# Este div agrupa a foto e o nome/username, alinhando-os horizontalmente e verticalmente no centro entre eles #}
+            <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 flex-shrink-0">
+                
+                {# BLOCO DA IMAGEM (AGORA QUADRADA: h-20 w-20 = 80x80px) #}
+                <div class="flex-shrink-0">
+                    {% if user_perfil.foto_perfil %}
+                        {# AS CLASSES AGORA SÃO h-20 w-20 PARA GARANTIR QUADRADO #}
+                        <img class="h-72 w-72 rounded-lg object-cover ring-4 ring-white shadow-lg" 
+                             src="{{ user_perfil.foto_perfil.url }}" 
+                             alt="Foto de Perfil de {{ user_perfil.como_deseja_ser_chamado }}">
+                    {% else %}
+                        {# TAMBÉM APLICANDO h-20 w-20 AO DIV DO FALLBACK #}
+                        <div class="h-72 w-72 rounded-lg bg-gray-500 flex items-center justify-center text-3xl font-bold ring-4 ring-white shadow-lg">
+                            {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# BLOCO DAS INFORMAÇÕES DO PERFIL (NOME, USERNAME, TIPO) #}
+                <div class="text-center md:text-left"> {# Mantido text-center para mobile, alinha à esquerda em md #}
+                    {# Mantido o tamanho do H1 em text-3xl #}
+                    <h1 class="text-3xl font-bold mb-1"> 
+                        {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username }}
+                    </h1>
+                    
+                    <p class="text-lg text-gray-300 italic"> {# Mantendo o tamanho do texto #}
+                        @{{ user_perfil.username }}
+                        {% if tipo_perfil == 'professor' %}
+                            — <span class="text-yellow-400 font-semibold">Professor(a) Verificado(a)</span>
+                        {% else %}
+                            — <span class="text-amber-300 font-semibold">Aluno(a) na Plataforma</span>
+                        {% endif %}
+                    </p>
+
+                    {% if user_perfil.nome_completo %}
+                        <p class="text-sm text-gray-400 mt-1">Nome Completo: {{ user_perfil.nome_completo }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# BLOCO DOS BOTÕES - Lado Direito #}
+            {# Permanece à direita, usando `md:ms-auto` para empurrar e `md:items-end` para alinhar à direita #}
+            <div class="mt-4 md:mt-0 flex flex-col space-y-2 md:ms-auto md:items-end">
+                {% if request.user == user_perfil %}
+                    <a href="{% url 'users:editar_perfil' %}" 
+                       class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 hover:scale-[1.03]">
+                        <i class="fas fa-edit me-2"></i> Editar Meu Perfil
+                    </a>
+                    
+                    <a href="{% url 'users:minhas_mensagens' %}" 
+                       class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 hover:scale-[1.03]">
+                        <i class="fas fa-inbox me-2"></i> Minhas Mensagens
+                    </a>
+                    
+                {% elif request.user.is_authenticated and tipo_perfil == 'professor' %}
+                    <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" 
+                       class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 hover:scale-[1.03]">
+                        <i class="fas fa-envelope me-2"></i> Contatar Professor
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 bg-gray-50 p-6 rounded-lg shadow-inner">
+                <h3 class="text-xl font-bold text-gray-800 border-b-2 border-amber-400 pb-2 mb-4">Informações Gerais</h3>
+                
+                <dl class="space-y-3 text-sm">
+                    <div class="flex items-start">
+                        <i class="fas fa-map-marker-alt text-amber-500 mt-1 me-3"></i>
+                        <dd class="text-gray-600">
+                            Residência: <span class="font-semibold">{{ user_perfil.cidade|default:"Não informado" }}</span>
+                        </dd>
+                    </div>
+
+                    {% if request.user == user_perfil %}
+                        <div class="flex items-start">
+                            <i class="fas fa-phone-alt text-amber-500 mt-1 me-3"></i>
+                            <dd class="text-gray-600">
+                                Telefone: <span class="font-semibold">{{ user_perfil.telefone|default:"Não informado" }}</span>
+                            </dd>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="flex items-start">
+                        <i class="fas fa-graduation-cap text-amber-500 mt-1 me-3"></i>
+                        <dd class="text-gray-600">
+                            Escolaridade: <span class="font-semibold">{{ user_perfil.escolaridade|default:"Não informado" }}</span>
+                        </dd>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-gray-200">
+                            <h4 class="font-semibold text-gray-700 mb-2 flex items-center"><i class="fas fa-tags me-2 text-amber-500"></i> Meus Interesses</h4>
+                            <p class="text-gray-600 italic text-justify">{{ user_perfil.interesses|default:"Nenhum interesse listado."|linebreaksbr }}</p>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="lg:col-span-2 space-y-8">
+                
+                {% if tipo_perfil == 'professor' and perfil_extensao %}
+                    <div class="bg-yellow-50 p-6 rounded-lg shadow-xl border-l-4 border-yellow-500">
+                        <h3 class="text-2xl font-bold text-yellow-800 mb-4 flex items-center">
+                            <i class="fas fa-star text-yellow-600 me-3"></i> Perfil Profissional
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 {% if perfil_extensao.is_voluntario %}sm:grid-cols-3{% else %}sm:grid-cols-2{% endif %} gap-4 mb-6 text-center">
+                            
+                            <div class="p-3 bg-white rounded-lg shadow-sm border border-yellow-200">
+                                
+                                <p class="text-xl font-extrabold text-gray-600">
+                                    {% if perfil_extensao.tarifa_hora and perfil_extensao.tarifa_hora > 0 %}
+                                        Valor: R$ {{ perfil_extensao.tarifa_hora|floatformat:2 }}/h
+                                    {% else %}
+                                        <span class="text-green-600">Gratuito</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="p-3 bg-white rounded-lg shadow-sm border border-yellow-200">
+                                
+                                <p class="text-xl font-extrabold text-gray-800">
+                                    {% if perfil_extensao.status_ativo %}
+                                        <span class="text-green-600">Aceitando Alunos</span>
+                                    {% else %}
+                                        <span class="text-red-600">Inativo</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            {% if perfil_extensao.is_voluntario %}
+                            <div class="p-3 bg-white rounded-lg shadow-sm border border-yellow-200">
+                                
+                                <p class="text-xl font-extrabold text-amber-600">
+                                    <i class="fas fa-heart text-amber-500 me-1"></i> Voluntário
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-6">
+                            <h4 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-book-open me-2 text-yellow-600"></i> Disciplinas Lecionadas</h4>
+                            <p class="text-gray-600">{{ perfil_extensao.disciplinas|default:"Nenhuma disciplina listada."|linebreaksbr }}</p>
+                        </div>
+
+                        <div class="mb-6">
+                            <h4 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-briefcase me-2 text-yellow-600"></i> Sobre o Professor</h4>
+                            <p class="text-gray-600 text-justify">{{ perfil_extensao.bio_profissional|default:"Sem descrição profissional."|linebreaksbr }}</p>
+                        </div>
+                        
+                        <div class="p-4 bg-yellow-100 rounded-lg border border-yellow-300">
+                            <h4 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-school me-2 text-yellow-700"></i> Detalhes e Metodologia da Aula</h4>
+                            <p class="text-gray-700 text-justify">{{ perfil_extensao.sobre_a_aula|default:"Sem detalhes sobre a metodologia."|linebreaksbr }}</p>
+
+                            <div class="mt-3 pt-2 border-t border-yellow-300">
+                                <span class="inline-flex items-center me-4 text-sm text-gray-700">
+                                    <i class="fas fa-globe me-1 {% if perfil_extensao.aceita_online %}text-green-500{% else %}text-red-500{% endif %}"></i>
+                                    Aulas Online: 
+                                    <span class="font-semibold ms-1">{% if perfil_extensao.aceita_online %}Sim{% else %}Não{% endif %}</span>
+                                </span>
+                                <span class="inline-flex items-center text-sm text-gray-700">
+                                    <i class="fas fa-users me-1 {% if perfil_extensao.aceita_grupo %}text-green-500{% else %}text-red-500{% endif %}"></i>
+                                    Aulas em Grupo: 
+                                    <span class="font-semibold ms-1">{% if perfil_extensao.aceita_grupo %}Sim{% else %}Não{% endif %}</span>
+                                </span>
+                                {% if perfil_extensao.modalidades %}
+                                    <p class="text-sm mt-2 text-gray-700"><span class="font-semibold">Local de Aula:</span> {{ perfil_extensao.modalidades }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                
+                {% else %}
+                    <div class="bg-amber-50 p-6 rounded-lg shadow-xl border-l-4 border-amber-500">
+                        <h3 class="text-2xl font-bold text-amber-800 mb-4 flex items-center">
+                            <i class="fas fa-user-circle text-amber-600 me-3"></i> Minha Biografia
+                        </h3>
+                        <p class="text-gray-700 text-justify">{{ user_perfil.biografia|default:"Este usuário não adicionou uma biografia ainda."|linebreaksbr }}</p>
+
+                        <div class="mt-6 pt-4 border-t border-amber-200">
+                            <h4 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-history me-2 text-amber-600"></i> Histórico de Aprendizagem</h4>
+                            <p class="text-gray-700 text-justify">{{ user_perfil.historico_aprendizagem|default:"Sem histórico de aprendizado registrado."|linebreaksbr }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if request.user.is_authenticated and tipo_perfil == 'professor' and request.user != user_perfil %}
+                    <div class="text-center p-4 bg-gray-100 rounded-lg shadow-md border border-gray-200">
+                        <p class="mb-3 text-lg font-semibold text-gray-700">Interessado nas aulas de {{ user_perfil.como_deseja_ser_chamado }}?</p>
+                        <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" 
+                           class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-xl hover:shadow-2xl transition duration-300">
+                            <i class="fas fa-hand-point-right me-2"></i> Enviar Mensagem Agora
+                        </a>
+                    </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock content %}
