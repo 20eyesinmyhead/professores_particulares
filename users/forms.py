@@ -125,7 +125,7 @@ class ProfessorProfileForm(forms.ModelForm):
         }
 
 # ==============================================================================
-# 4. Formulário de Contato com o Professor
+# 4. Formulário de Contato com o Professor (*** CÓDIGO CORRIGIDO ***)
 # ==============================================================================
 class ContactProfessorForm(forms.ModelForm):
     """
@@ -146,8 +146,16 @@ class ContactProfessorForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # 1. CAPTURA O 'user' ANTES DE CHAMAR O SUPER()
+        #    Sua view estava passando 'user=request.user', mas o __init__
+        #    não estava esperando por isso, causando o Erro 500 (TypeError).
+        #    kwargs.pop() remove o argumento 'user' para evitar o erro.
+        self.user = kwargs.pop('user', None)
+        
+        # 2. CHAMA O __init__ PAI (agora sem o 'user' inesperado)
         super().__init__(*args, **kwargs)
-        # Pré-preenche o e-mail de confirmação se for passado
+        
+        # 3. LÓGICA ORIGINAL PARA PRÉ-PREENCHER O E-MAIL
+        #    Pré-preenche o e-mail de confirmação se for passado
         if 'initial' in kwargs and 'confirmar_email' in kwargs['initial']:
-             self.fields['confirmar_email'].initial = kwargs['initial']['confirmar_email']
-
+                self.fields['confirmar_email'].initial = kwargs['initial']['confirmar_email']
