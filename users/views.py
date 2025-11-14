@@ -284,11 +284,15 @@ def contato_professor(request, professor_pk):
 
     # --- LÓGICA ANTI-SPAM ---
     limite_tempo = timezone.now() - timedelta(hours=1)
+    
+    # *** CORREÇÃO DO BUG [1/2] ***
+    # O campo se chama 'data_envio', e não 'data_contato'
     contagem_recente = ContactProfessor.objects.filter(
         aluno=request.user,
         professor=professor,
-        data_envio__gte=limite_tempo
+        data_envio__gte=limite_tempo  # <-- CORRIGIDO AQUI
     ).count()
+    
     LIMITE_MENSAGENS = 3
     if contagem_recente >= LIMITE_MENSAGENS:
         messages.error(request, "Você enviou muitas mensagens recentemente para este professor. Tente novamente em uma hora.")
@@ -302,6 +306,7 @@ def contato_professor(request, professor_pk):
 
         if form.is_valid():
             with transaction.atomic():
+                # 1. Salva a mensagem no Banco de Dados
                 contato = form.save(commit=False)
                 contato.aluno = request.user
                 contato.professor = professor
@@ -321,7 +326,7 @@ def contato_professor(request, professor_pk):
                 # -----------------------------------------------------------------
 
                 try:
-                    # Renderiza o corpo do email a partir do template HTML
+                    # 2. Prepara e-mail para o PROFESSOR (HTML)
                     html_message = render_to_string('emails/notificacao_professor.html', {
                         'professor_nome': professor.como_deseja_ser_chamado or professor.username,
                         'aluno_nome': request.user.como_deseja_ser_chamado or request.user.username,
@@ -338,7 +343,6 @@ def contato_professor(request, professor_pk):
                         )
                     })
 
-                    # Cria o objeto EmailMessage para enviar HTML
                     email_msg = EmailMessage(
                         subject=f"Novo Interesse de Aula: {contato.assunto}",
                         body=f"Você recebeu uma nova mensagem de {request.user.username}. Veja os detalhes no email HTML.",
@@ -348,24 +352,27 @@ def contato_professor(request, professor_pk):
                     )
                     email_msg.content_subtype = "html"
                     email_msg.body = html_message
+                    
+                    # 3. Tenta enviar para o PROFESSOR
                     email_msg.send(fail_silently=False)
 
-                    messages.success(request, f"Sua mensagem foi enviada para {professor.como_deseja_ser_chamado or professor.username}!")
+                    # *** OTIMIZAÇÃO [2/2] ***
+                    # 4. Tenta enviar a CÓPIA para o ALUNO (dentro do mesmo try)
+                    send_mail(
+                        subject=f"Cópia: Seu contato com {professor.como_deseja_ser_chamado or professor.username}",
+                        message=f"Esta é uma cópia da sua mensagem enviada:\n\n{contato.mensagem}", 
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[email_confirmado_pelo_aluno],
+                        fail_silently=False, # Se falhar, o 'except' abaixo vai pegar
+                    )
 
-                    # Opcional: Enviar cópia para o Aluno
-                    try:
-                        send_mail(
-                            subject=f"Cópia: Seu contato com {professor.como_deseja_ser_chamado or professor.username}",
-                            message=f"Sua mensagem:\n\n{contato.mensagem}", 
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[email_confirmado_pelo_aluno],
-                            fail_silently=True,
-                        )
-                    except Exception:
-                        pass 
+                    # 5. Sucesso (APENAS se AMBOS e-mails funcionarem)
+                    messages.success(request, f"Sua mensagem foi enviada para {professor.como_deseja_ser_chamado or professor.username} e uma cópia foi enviada para você.")
 
                 except Exception as e:
-                    messages.warning(request, f"Sua mensagem foi salva, mas ocorreu um erro ao enviar o e-mail: {e}. Por favor, verifique as configurações de EMAIL no settings.py.")
+                    # 6. Aviso (Se QUALQUER um dos e-mails falhar)
+                    # A mensagem JÁ FOI SALVA no banco de dados.
+                    messages.warning(request, f"Sua mensagem foi salva, mas ocorreu um erro ao enviar o e-mail: {e}. Verifique suas configurações no Render.")
 
             return redirect('users:perfil_detalhe', username=professor.username)
         else:
