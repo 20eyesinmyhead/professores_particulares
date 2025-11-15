@@ -1,19 +1,26 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load custom_tags %} 
-<!-- Carrega o filtro add_class -->
+{# Carrega a tag customizada 'add_class' para injetar classes CSS nos campos do formulário #}
 
+{# Título da página #}
 {% block title %}Editar Perfil{% endblock %}
 
 {% block content %}
 <div class="container mx-auto p-4 md:p-8 max-w-3xl">
 
-    <!-- Mensagens do Django -->
+    {# 
+      Seção de Mensagens:
+      Exibe feedback global (ex: "Perfil salvo com sucesso",
+      ou erros de validação da view).
+    #}
     {% if messages %}
         <div class="mb-4 space-y-3">
             {% for message in messages %}
             <div class="p-3 text-sm rounded-lg shadow-md 
-                {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                {% if message.tags == 'success' %}bg-green-100 text-green-700
+                {% elif message.tags == 'error' %}bg-red-100 text-red-700
+                {% else %}bg-amber-100 text-amber-700{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
@@ -25,7 +32,11 @@
             Editar Perfil
         </h1>
 
-        <!-- Abas de Navegação (Sempre Visíveis) -->
+        {# 
+          --- Abas de Navegação (Tabs) ---
+          Estes botões controlam a visibilidade dos containers de formulário
+          abaixo ('form-geral' e 'form-professor') usando JavaScript.
+        #}
         <div class="flex border-b border-gray-200 mb-6">
             <button id="tab-geral"
                     class="tab-button flex-1 py-3 text-center text-lg font-semibold border-b-2 transition duration-300 ease-in-out"
@@ -40,19 +51,32 @@
             </button>
         </div>
 
-        <!-- 
-        FORMULÁRIO ÚNICO
-        -->
+        {# 
+          ========================================
+          FORMULÁRIO ÚNICO
+          Ambos os formulários do Django ('user_form' e 'professor_form')
+          são renderizados dentro de UMA ÚNICA tag <form>.
+          Isso permite que o usuário edite tudo e salve com um único botão.
+          
+          'enctype="multipart/form-data"' é ESSENCIAL para
+          permitir o upload de arquivos (ex: 'foto_perfil').
+          ========================================
+        #}
         <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+            {% csrf_token %} {# Token de segurança obrigatório #}
 
-            <!-- Seção 1: Formulário Geral (CustomUserEditForm) -->
+            {# 
+              --- Seção 1: Formulário Geral (CustomUserEditForm) ---
+              Este 'div' é o container da primeira aba.
+              Ele é controlado pelo JS (id="form-geral").
+            #}
             <div id="form-geral" class="form-container space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
                     <i class="fas fa-user-circle text-yellow-500 mr-2"></i>
                     Informações Gerais da Conta
                 </h2>
                 
+                {# Exibe erros não-campo (globais) do 'user_form' #}
                 {% if user_form.non_field_errors %}
                     <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                         {% for error in user_form.non_field_errors %}
@@ -61,30 +85,41 @@
                     </div>
                 {% endif %}
 
+                {# Loop para renderizar cada campo do 'user_form' #}
                 {% for field in user_form %}
                     <div class="form-group mb-4">
                         <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             {{ field.label }}
                         </label>
                         
-                        <!-- Checkbox Amarelo (Geral) -->
+                        {# 
+                          Lógica Condicional de Renderização de Campo:
+                          Campos de checkbox ('is_professor', 'pausar_conta')
+                          têm um HTML customizado para melhor posicionamento.
+                        #}
                         {% if field.name == 'is_professor' or field.name == 'pausar_conta' %}
                             <div class="mt-2 flex items-center">
+                                {# Aplica classes de Tailwind para um checkbox amarelo ('accent-yellow-600') #}
                                 {{ field|add_class:"h-4 w-4 accent-yellow-600 border-gray-300 rounded focus:ring-yellow-500" }}
+                                {# Coloca o 'help_text' como o label principal do checkbox #}
                                 <label for="{{ field.id_for_label }}" class="ml-2 block text-sm text-gray-900">
                                     {{ field.help_text|safe }}
                                 </label>
                             </div>
-                        <!-- Foco Amarelo -->
+                        {# Renderização padrão para campos 'textarea' (caixa de texto grande) #}
                         {% elif field.widget_type == 'textarea' %}
                             {{ field|add_class:"mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 h-24" }}
+                        {# Renderização padrão para todos os outros campos (input, select, etc.) #}
                         {% else %}
                             {{ field|add_class:"mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500" }}
                         {% endif %}
                         
+                        {# O 'help_text' não é mostrado para checkboxes (pois já está no label) #}
                         {% if field.help_text and field.name != 'is_professor' and field.name != 'pausar_conta' %}
                             <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
                         {% endif %}
+                        
+                        {# Exibe erros específicos deste campo #}
                         {% for error in field.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ error }}</p>
                         {% endfor %}
@@ -92,14 +127,25 @@
                 {% endfor %}
             </div>
 
-            <!-- Seção 2: Formulário de Professor (ProfessorProfileForm) -->
+            {# 
+              --- Seção 2: Formulário de Professor (ProfessorProfileForm) ---
+              Este 'div' é o container da segunda aba.
+              Ele começa com a classe 'hidden', que o JavaScript remove.
+            #}
             <div id="form-professor" class="form-container hidden space-y-4 mt-10 pt-6 border-t border-gray-200">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
                     <i class="fas fa-star text-yellow-500 mr-2"></i>
                     Informações Profissionais
                 </h2>
                 
+                {# 
+                  Lógica Condicional Principal:
+                  Verifica se a view passou o 'professor_form'. Se o usuário
+                  não for professor ('is_professor' = False), a view NÃO
+                  passa este formulário (ele será 'None').
+                #}
                 {% if professor_form %}
+                    {# Exibe erros não-campo (globais) do 'professor_form' #}
                     {% if professor_form.non_field_errors %}
                         <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                             {% for error in professor_form.non_field_errors %}
@@ -108,15 +154,15 @@
                         </div>
                     {% endif %}
 
+                    {# Loop para renderizar cada campo do 'professor_form' #}
+                    {# Este loop é idêntico ao do 'user_form' para consistência #}
                     {% for field in professor_form %}
                         <div class="form-group mb-4">
                             <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 {{ field.label }}
                             </label>
                             
-                            <!-- ====================================================== -->
-                            <!-- CORREÇÃO: Aplica o estilo de checkbox amarelo aqui também -->
-                            <!-- ====================================================== -->
+                            {# Lógica de checkbox (para 'is_voluntario', 'aceita_online', etc.) #}
                             {% if field.widget_type == 'checkbox' %}
                                 <div class="mt-2 flex items-center">
                                     {{ field|add_class:"h-4 w-4 accent-yellow-600 border-gray-300 rounded focus:ring-yellow-500" }}
@@ -124,23 +170,31 @@
                                         {{ field.help_text|safe }}
                                     </label>
                                 </div>
+                            {# Lógica de textarea #}
                             {% elif field.widget_type == 'textarea' %}
                                 {{ field|add_class:"mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 h-24" }}
+                            {# Lógica de outros campos #}
                             {% else %}
                                 {{ field|add_class:"mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500" }}
                             {% endif %}
                             
-                            <!-- Esconde o help_text de checkboxes (pois já está no label) -->
+                            {# Esconde o help_text de checkboxes (pois já está no label) #}
                             {% if field.help_text and field.widget_type != 'checkbox' %}
                                 <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
                             {% endif %}
+                            
+                            {# Exibe erros específicos deste campo #}
                             {% for error in field.errors %}
                                 <p class="text-red-500 text-xs mt-1">{{ error }}</p>
                             {% endfor %}
                         </div>
                     {% endfor %}
+                {# 
+                  Bloco 'else' (se 'professor_form' não existir):
+                  Exibe esta mensagem se o usuário ainda não ativou o perfil de professor.
+                  Isso guia o usuário para a primeira aba.
+                #}
                 {% else %}
-                    <!-- Esta mensagem aparece se o usuário NÃO for professor -->
                     <p class="text-gray-600">
                         Para preencher suas informações profissionais, primeiro marque a opção 
                         <strong class="text-yellow-600">"Habilitar o perfil profissional"</strong> na aba "Perfil Geral" e salve suas alterações.
@@ -148,9 +202,9 @@
                 {% endif %}
             </div>
 
-            <!-- Botão de Salvar (Unificado) -->
+            {# --- Botão de Salvar (Unificado) --- #}
+            {# Este botão submete a <form> inteira (ambas as abas) #}
             <div class="mt-8 pt-6 border-t border-gray-200">
-                <!-- Botão cinza escuro (para combinar com a navbar) -->
                 <button type="submit" 
                         class="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-lg shadow-md transition duration-300 transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50">
                     Salvar Alterações
@@ -159,11 +213,14 @@
             
         </form>
         
-        <!-- Seção Deletar Conta (Mantido Vermelho) -->
+        {# 
+          --- Seção Deletar Conta (Zona de Perigo) ---
+          Isto é um LINK (<a>), não um botão de formulário.
+          Ele leva o usuário para uma página de confirmação separada ('excluir_conta').
+        #}
         <div class="mt-10 pt-6 border-t border-dashed border-red-300 text-center">
             <h3 class="text-lg font-semibold text-red-700">Zona de Perigo</h3>
             <p class="text-sm text-gray-600 mt-2 mb-4">Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta e todos os dados associados.</p>
-            <!-- ALTERAÇÃO: href="#" foi trocado pelo link da URL de exclusão -->
             <a href="{% url 'users:excluir_conta' %}" class="text-red-600 hover:text-red-800 underline">
                 Eu entendo, quero deletar minha conta
             </a>
@@ -172,63 +229,75 @@
     </div>
 </div>
 
-<!-- SCRIPT DE ABAS (Lógica de Alerta mantida) -->
+{# 
+  ========================================
+  SCRIPT DE ABAS (Tabs)
+  ========================================
+  Este JavaScript controla a lógica de mostrar/esconder as abas
+  'form-geral' e 'form-professor'.
+#}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // --- 1. Seleciona os elementos do DOM ---
         const tabGeral = document.getElementById('tab-geral');
         const tabProfessor = document.getElementById('tab-professor');
         const formGeral = document.getElementById('form-geral');
         const formProfessor = document.getElementById('form-professor');
         
-        // ID do checkbox 'is_professor'
+        // Pega o ID do checkbox 'is_professor' dinamicamente (gerado pelo Django)
         const isProfessorCheckbox = document.getElementById('{{ user_form.is_professor.auto_id }}');
         
-        // Função para mostrar a aba selecionada
+        // --- 2. Função principal para trocar de aba ---
         const switchTab = (tabToShow) => {
             if (tabToShow === 'tab-professor') {
-                // 1. Verifica se o checkbox está marcado ANTES de mudar
+                // 2a. Lógica de Bloqueio:
+                // ANTES de mudar para a aba 'Professor', verifica se o
+                // checkbox 'is_professor' (na aba 'Geral') está marcado.
                 if (isProfessorCheckbox && !isProfessorCheckbox.checked) {
-                    // ATENÇÃO: alert() pode não funcionar no seu ambiente. 
-                    // Se não funcionar, esta lógica de bloqueio pode falhar.
+                    // Se não estiver marcado, exibe um alerta e força a volta para a aba 'Geral'.
                     alert("Para editar o Perfil de Professor, marque a opção 'Habilitar o perfil profissional' na aba 'Perfil Geral' primeiro.");
-                    switchTab('tab-geral');
+                    switchTab('tab-geral'); // Chama a si mesma para reverter
                     return;
                 }
 
-                // Ativa a aba Professor (Visual)
+                // Atualiza o estilo visual das abas (borda amarela)
                 tabGeral.classList.remove('border-yellow-500', 'text-yellow-600');
                 tabGeral.classList.add('border-transparent', 'text-gray-500');
                 tabProfessor.classList.add('border-yellow-500', 'text-yellow-600');
                 tabProfessor.classList.remove('border-transparent', 'text-gray-500');
                 
-                // Mostra o container Professor
+                // Mostra/esconde os containers do formulário
                 formGeral.classList.add('hidden');
                 formProfessor.classList.remove('hidden');
 
-            } else { // 'tab-geral'
-                // Ativa a aba Geral (Visual)
+            } else { // tabToShow === 'tab-geral'
+                // Inverte a lógica visual
                 tabProfessor.classList.remove('border-yellow-500', 'text-yellow-600');
                 tabProfessor.classList.add('border-transparent', 'text-gray-500');
                 tabGeral.classList.add('border-yellow-500', 'text-yellow-600');
                 tabGeral.classList.remove('border-transparent', 'text-gray-500');
 
-                // Mostra o container Geral
+                // Mostra/esconde os containers
                 formProfessor.classList.add('hidden');
                 formGeral.classList.remove('hidden');
             }
         };
 
-        // Define a aba ativa inicial (baseado em erros, se houver)
+        // --- 3. Define a Aba Ativa Inicial ---
+        // Verifica se a página foi recarregada com erros na aba 'Professor'
         const professorErrors = document.getElementById('form-professor')?.querySelector('.text-red-500');
+        // Se houver erros E o usuário for professor...
         if (professorErrors && isProfessorCheckbox && isProfessorCheckbox.checked) {
+            // ... abre a aba 'Professor' para o usuário ver os erros.
             switchTab('tab-professor');
         } else {
+            // ... caso contrário, abre a aba 'Geral' por padrão.
             switchTab('tab-geral');
         }
 
-        // Listeners de clique nas abas
+        // --- 4. Adiciona os 'Listeners' de Clique ---
         tabGeral.addEventListener('click', (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Impede o comportamento padrão do botão
             switchTab('tab-geral');
         });
         tabProfessor.addEventListener('click', (e) => {
@@ -236,11 +305,11 @@
             switchTab('tab-professor');
         });
         
-        // Listener para o checkbox (se o usuário desmarcar 'is_professor')
+        // Listener extra: se o usuário DESMARCAR o checkbox,
+        // força a volta para a aba 'Geral'.
         if (isProfessorCheckbox) {
             isProfessorCheckbox.addEventListener('change', (e) => {
                 if (!e.target.checked) {
-                    // Se desmarcar, força a volta para a aba Geral
                     switchTab('tab-geral');
                 }
             });
