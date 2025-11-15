@@ -5,14 +5,14 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
 {% endcomment %}
 {% load static %}
 {% load custom_tags %} 
-{# Carrega o filtro 'add_class' (embora este template use JS para estilizar) #}
+{#Carrega o filtro 'add_class' (embora este template use JS para estilizar) #}
 
-{# Define o título da aba do navegador #}
+{#Define o título da aba do navegador #}
 {% block title %}Acesso à Conta{% endblock %}
 
 {% block content %}
 
-{# 
+{#
   Esta seção 'section' usa Tailwind para centralizar o
   card de login no meio da tela (flex items-center justify-center).
 #}
@@ -23,7 +23,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             <i class="fas fa-lock mr-2 text-gray-700"></i> Acesso à Conta
         </h2>
         
-        {# 
+        {#
           Seção de Mensagens:
           Exibe mensagens de feedback. A mais comum aqui será
           enviada pelo Django se a senha estiver errada,
@@ -42,16 +42,16 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </div>
         {% endif %}
 
-        {# 
+        {#
           Formulário de Login:
           A view 'auth_views.LoginView' (do 'users/urls.py')
           automaticamente passa o 'form' (AuthenticationForm)
           para este template.
         #}
         <form method="post" class="space-y-4">
-            {% csrf_token %} {# Token de segurança obrigatório #}
+            {% csrf_token %} {#Token de segurança obrigatório #}
             
-            {# 
+            {#
               Loop de Renderização do Formulário:
               Itera sobre os campos do 'AuthenticationForm'
               (que são 'username' e 'password').
@@ -61,7 +61,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
                     <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                         {{ field.label }}
                     </label>
-                    {# 
+                    {#
                       Renderização Bruta do Campo:
                       '{{ field }}' renderiza o HTML <input ...>
                       A estilização deste campo é aplicada
@@ -71,14 +71,14 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
                     {% if field.help_text %}
                         <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
                     {% endif %}
-                    {# Exibe erros de validação (ex: "Campo obrigatório") #}
+                    {#Exibe erros de validação (ex: "Campo obrigatório") #}
                     {% for error in field.errors %}
                         <p class="text-sm text-red-500 mt-1">{{ error }}</p>
                     {% endfor %}
                 </div>
             {% endfor %}
             
-            {# 
+            {#
               Campo Oculto 'next':
               Este é um campo crucial do fluxo de autenticação.
               Se um usuário tenta acessar '/perfil/editar/' (protegido)
@@ -95,16 +95,16 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </button>
         </form>
         
-        {# Links de ajuda (recuperação de senha e registro) #}
+        {#Links de ajuda (recuperação de senha e registro) #}
         <div class="text-center pt-4 border-t border-gray-100 mt-6">
             <p class="text-sm text-gray-600 space-y-2">
-                {# 'password_reset' é uma URL padrão do 'django.contrib.auth.urls' #}
+                {#'password_reset' é uma URL padrão do 'django.contrib.auth.urls' #}
                 <a href="{% url 'password_reset' %}" class="font-medium text-yellow-600 hover:text-yellow-500 transition duration-150 ease-in-out block">
                     Esqueceu sua senha?
                 </a>
                 <span class="block">
                     Novo por aqui? 
-                    {# 'users:registro' é a sua view de registro customizada #}
+                    {#'users:registro' é a sua view de registro customizada #}
                     <a href="{% url 'users:registro' %}" class="font-medium text-yellow-600 hover:text-yellow-500 transition duration-150 ease-in-out">
                         Crie sua conta
                     </a>
@@ -114,7 +114,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
     </div>
 </section>
 
-{# 
+{#
   Script de Estilização de Formulário:
   Este script é uma alternativa ao filtro '|add_class'.
   Ele espera a página carregar ('DOMContentLoaded') e, em seguida,

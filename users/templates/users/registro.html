@@ -4,9 +4,9 @@
 Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
 {% endcomment %}
 {% load static %}
-{% load custom_tags %} {# Carrega o filtro '|add_class' #}
+{% load custom_tags %} {#Carrega o filtro '|add_class' #}
 
-{# Define o título da aba do navegador #}
+{#Define o título da aba do navegador #}
 {% block title %}Crie sua Conta{% endblock %}
 
 {% block content %}
@@ -20,7 +20,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             Preencha os campos abaixo para se registrar.
         </p>
 
-        {# 
+        {#
           Seção de Mensagens:
           Exibe erros de validação globais que a view 'registro' possa
           ter enviado (ex: "Email já cadastrado").
@@ -38,7 +38,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </div>
         {% endif %}
 
-        {# 
+        {#
           ========================================
           FORMULÁRIO DE REGISTRO
           ========================================
@@ -46,9 +46,9 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
           O 'method="post"' é o que aciona a lógica de processamento na view.
         #}
         <form method="post" class="space-y-4">
-            {% csrf_token %} {# Token de segurança obrigatório #}
+            {% csrf_token %} {#Token de segurança obrigatório #}
 
-            {# Exibe erros "não-campo" (ex: senhas não conferem) #}
+            {#Exibe erros "não-campo" (ex: senhas não conferem) #}
             {% if form.non_field_errors %}
                 <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                     {% for error in form.non_field_errors %}
@@ -57,7 +57,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
                 </div>
             {% endif %}
 
-            {# 
+            {#
               Loop de Renderização de Formulário (Padrão DRY):
               Este loop itera sobre TODOS os campos definidos
               na 'Meta.fields' do 'CustomUserCreationForm'
@@ -65,23 +65,23 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             #}
             {% for field in form %}
                 <div class="form-group">
-                    {# 1. Renderiza o <label> e o asterisco de 'obrigatório' #}
+                    {#1. Renderiza o <label> e o asterisco de 'obrigatório' #}
                     <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                         {{ field.label }}
                         {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
                     </label>
 
-                    {# 
+                    {#
                       2. Renderiza o Campo (Widget)
                       Aplica classes de estilo diferentes com base no tipo
                       de widget (ex: 'textarea' é maior).
                     #}
                     {% if field.widget_type == 'textarea' %}
-                        {# 'h-24' define uma altura maior para caixas de texto #}
+                        {#'h-24' define uma altura maior para caixas de texto #}
                         {{ field|add_class:"mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24" }}
                     
                     {% elif field.widget_type == 'checkbox' %}
-                        {# Renderização especial para checkboxes #}
+                        {#Renderização especial para checkboxes #}
                          <div class="mt-1 flex items-center">
                             {{ field|add_class:"h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" }}
                             <label for="{{ field.id_for_label }}" class="ml-2 block text-sm text-gray-900">
@@ -90,16 +90,16 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
                          </div>
                     
                     {% else %}
-                        {# Renderização padrão para <input>, <select>, etc. #}
+                        {#Renderização padrão para <input>, <select>, etc. #}
                         {{ field|add_class:"mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" }}
                     {% endif %}
 
-                    {# 3. Renderiza o texto de ajuda (exceto para checkboxes) #}
+                    {#3. Renderiza o texto de ajuda (exceto para checkboxes) #}
                     {% if field.help_text and field.widget_type != 'checkbox' %}
                         <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
                     {% endif %}
                     
-                    {# 4. Renderiza erros de validação específicos do campo #}
+                    {#4. Renderiza erros de validação específicos do campo #}
                     {% for error in field.errors %}
                         <p class="text-red-500 text-xs mt-1">{{ error }}</p>
                     {% endfor %}
@@ -112,7 +112,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </button>
         </form>
 
-        {# Link para a página de login, caso o usuário já tenha conta #}
+        {#Link para a página de login, caso o usuário já tenha conta #}
         <div class="text-center pt-4 border-t border-gray-100 mt-6">
             <p class="text-sm text-gray-600">
                 Já tem uma conta?

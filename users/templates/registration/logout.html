@@ -3,7 +3,7 @@
 {% comment %}
 Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
 {% endcomment %}
-{# 
+{#
   Este template é a página de "confirmação de logout".
   A view 'LogoutView' padrão do Django é configurada para:
   1. (GET Request): Mostrar esta página de confirmação.
@@ -13,7 +13,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
 {% block content %}
     <h2>Tem certeza que deseja sair?</h2>
 
-    {# 
+    {#
       Formulário de Confirmação:
       Quando o usuário clica no botão "Sim", este formulário envia
       um 'POST' para a view 'LogoutView'.
@@ -23,9 +23,9 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
       (definida no seu 'settings.py' como '/').
     #}
     <form method="post">
-        {% csrf_token %} {# Token de segurança obrigatório #}
+        {% csrf_token %} {#Token de segurança obrigatório #}
         
-        {# 
+        {#
           NOTA: 'btn btn-danger' é uma classe do framework Bootstrap.
           Seu site usa Tailwind. Para consistência visual, você pode
           trocar por: "bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
@@ -33,7 +33,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
         <button type="submit" class="btn btn-danger">Sim, fazer log out</button>
     </form>
 
-    {# 
+    {#
       Link "Cancelar" (Corrigido):
       *** CORREÇÃO DE BUG ***
       O link original apontava para {% url 'home' %}, uma URL que
