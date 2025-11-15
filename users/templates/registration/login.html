@@ -1,22 +1,33 @@
+{% comment %}
+Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
+{% endcomment %}
 {% extends 'base/base.html' %} 
 {% load static %}
 {% load custom_tags %} 
-<!-- Carrega o filtro add_class -->
+{# Carrega o filtro 'add_class' (embora este template use JS para estilizar) #}
 
+{# Define o título da aba do navegador #}
 {% block title %}Acesso à Conta{% endblock %}
 
 {% block content %}
 
-<!-- Note: Este template usa classes Tailwind CSS -->
+{# 
+  Esta seção 'section' usa Tailwind para centralizar o
+  card de login no meio da tela (flex items-center justify-center).
+#}
 <section class="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
     <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl space-y-6 transform transition duration-500 hover:shadow-3xl">
         
         <h2 class="text-3xl font-extrabold text-gray-900 text-center border-b pb-3 mb-6">
-            <!-- CORREÇÃO: Ícone cinza escuro -->
             <i class="fas fa-lock mr-2 text-gray-700"></i> Acesso à Conta
         </h2>
         
-        <!-- Exibir Mensagens do Django (Success, Error, etc.) -->
+        {# 
+          Seção de Mensagens:
+          Exibe mensagens de feedback. A mais comum aqui será
+          enviada pelo Django se a senha estiver errada,
+          ou uma mensagem 'success' após o registro.
+        #}
         {% if messages %}
             <div class="space-y-3">
                 {% for message in messages %}
@@ -30,42 +41,69 @@
             </div>
         {% endif %}
 
+        {# 
+          Formulário de Login:
+          A view 'auth_views.LoginView' (do 'users/urls.py')
+          automaticamente passa o 'form' (AuthenticationForm)
+          para este template.
+        #}
         <form method="post" class="space-y-4">
-            {% csrf_token %} 
+            {% csrf_token %} {# Token de segurança obrigatório #}
             
-            <!-- Renderiza os campos do formulário (o script abaixo aplica o estilo) -->
+            {# 
+              Loop de Renderização do Formulário:
+              Itera sobre os campos do 'AuthenticationForm'
+              (que são 'username' e 'password').
+            #}
             {% for field in form %}
                 <div class="group">
                     <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                         {{ field.label }}
                     </label>
+                    {# 
+                      Renderização Bruta do Campo:
+                      '{{ field }}' renderiza o HTML <input ...>
+                      A estilização deste campo é aplicada
+                      pelo script JavaScript no final do arquivo.
+                    #}
                     {{ field }}
                     {% if field.help_text %}
                         <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
                     {% endif %}
+                    {# Exibe erros de validação (ex: "Campo obrigatório") #}
                     {% for error in field.errors %}
                         <p class="text-sm text-red-500 mt-1">{{ error }}</p>
                     {% endfor %}
                 </div>
             {% endfor %}
             
+            {# 
+              Campo Oculto 'next':
+              Este é um campo crucial do fluxo de autenticação.
+              Se um usuário tenta acessar '/perfil/editar/' (protegido)
+              sem estar logado, o Django o redireciona para
+              '/login/?next=/perfil/editar/'.
+              Este campo oculto captura o valor '/perfil/editar/' e,
+              após o login, redireciona o usuário para lá.
+            #}
+
             <input type="hidden" name="next" value="{{ next }}">
 
-            <!-- CORREÇÃO: Botão cinza escuro -->
             <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
                 <i class="fas fa-sign-in-alt mr-2"></i> Entrar na Plataforma
             </button>
         </form>
         
+        {# Links de ajuda (recuperação de senha e registro) #}
         <div class="text-center pt-4 border-t border-gray-100 mt-6">
             <p class="text-sm text-gray-600 space-y-2">
-                <!-- CORREÇÃO: Link de "Esqueceu a senha" (usando a cor de destaque do tema, amarelo) -->
+                {# 'password_reset' é uma URL padrão do 'django.contrib.auth.urls' #}
                 <a href="{% url 'password_reset' %}" class="font-medium text-yellow-600 hover:text-yellow-500 transition duration-150 ease-in-out block">
                     Esqueceu sua senha?
                 </a>
                 <span class="block">
                     Novo por aqui? 
-                    <!-- CORREÇÃO: Link de "Crie sua conta" (usando a cor de destaque do tema, amarelo) -->
+                    {# 'users:registro' é a sua view de registro customizada #}
                     <a href="{% url 'users:registro' %}" class="font-medium text-yellow-600 hover:text-yellow-500 transition duration-150 ease-in-out">
                         Crie sua conta
                     </a>
@@ -75,14 +113,19 @@
     </div>
 </section>
 
-<!-- Script para aplicar classes Tailwind aos inputs do formulário -->
+{# 
+  Script de Estilização de Formulário:
+  Este script é uma alternativa ao filtro '|add_class'.
+  Ele espera a página carregar ('DOMContentLoaded') e, em seguida,
+  procura ('querySelectorAll') todos os campos de formulário e
+  adiciona manualmente a lista de classes do Tailwind a eles.
+#}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Seleciona todos os inputs comuns (exceto submit/checkbox), selects e textareas
         const form = document.querySelector('form');
         if (form) {
             form.querySelectorAll('input:not([type="submit"]):not([type="checkbox"]), select, textarea').forEach(el => {
-                // CORREÇÃO: Foco para amarelo (cor de destaque do tema)
+                // Adiciona a longa string de classes do Tailwind
                 el.classList.add('appearance-none', 'block', 'w-full', 'px-3', 'py-2', 'border', 'border-gray-300', 'rounded-lg', 'shadow-sm', 'placeholder-gray-400', 'focus:outline-none', 'focus:ring-yellow-500', 'focus:border-yellow-500', 'sm:text-sm');
             });
         }

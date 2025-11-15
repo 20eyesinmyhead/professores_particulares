@@ -1,51 +1,72 @@
 {% extends 'base/base.html' %} 
 {% load static %}
-{% load perfil_tags %} 
+{% load perfil_tags %} {# Carrega tags customizadas (ex: 'add_class') #}
 
-{# Título dinâmico da página, usando o nome de usuário do perfil. #}
+{# 
+  Define o título da aba do navegador dinamicamente.
+  'user_perfil' é o objeto do usuário (CustomUser) que está sendo visualizado.
+#}
 {% block title %}Perfil de {{ user_perfil.username }}{% endblock %}
 
-{# Início do conteúdo principal da página. #}
+{# Início do bloco de conteúdo principal #}
 {% block content %}
 
-{# Container principal da página, centralizado e com espaçamento. #}
 <div class="container mx-auto p-4 md:p-8 mt-4">
     
-    {# Seção para exibir mensagens de feedback (sucesso, erro, aviso) para o usuário. #}
+    {# 
+      Seção para exibir mensagens de feedback (ex: "Mensagem enviada!").
+      As mensagens são passadas pela view (ex: após um redirect).
+    #}
     {% if messages %}
         <div class="mb-6 space-y-3">
             {% for message in messages %}
-            <div class="p-3 text-sm rounded-lg shadow-md 
-                {% if message.tags == 'success' %}bg-amber-100 text-amber-800{% elif message.tags == 'error' %}bg-red-100 text-red-700{% comment %} Manter vermelho para erro por ser padrão e crítico, se desejar alterar, precisa de uma cor alternativa forte {% endcomment %}{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+            <div classclass="p-3 text-sm rounded-lg shadow-md 
+                {# 
+                  Define a cor do alerta com base na 'tag' da mensagem (success, error, warning).
+                  A tag 'warning' foi usada na view 'contato_professor' para erros de e-mail.
+                #}
+                {% if message.tags == 'success' %}bg-amber-100 text-amber-800
+                {% elif message.tags == 'error' %}bg-red-100 text-red-700
+                {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-gray-100 text-gray-700
+                {% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    {# Card principal que engloba todo o conteúdo do perfil, com fundo branco e sombra. #}
+    {# Card principal que envolve todo o conteúdo do perfil #}
     <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
         
-        {# CABEÇALHO PRINCIPAL DO PERFIL #}
-        {# Contém a imagem, nome do usuário, tipo de perfil e botões de ação. Layout em grid responsivo. #}
+        {# ======================================== #}
+        {# CABEÇALHO PRINCIPAL DO PERFIL             #}
+        {# ======================================== #}
         <div class="bg-gray-800 p-6 sm:p-8 text-white grid grid-cols-1 md:grid-cols-3 gap-y-6 md:gap-x-8 items-center md:items-end">
             
-            {# COLUNA 1: IMAGEM DO PERFIL #}
-            {# Exibe a foto do perfil ou um placeholder com a inicial do nome. #}
+            {# --- COLUNA 1: IMAGEM DO PERFIL --- #}
             <div class="flex justify-center md:justify-start md:col-span-1">
+                {# Se o usuário tem uma foto de perfil, exibe-a #}
                 {% if user_perfil.foto_perfil %}
                     <img class="h-72 w-72 rounded-lg object-cover ring-4 ring-white shadow-lg mx-auto md:mx-0" 
                          src="{{ user_perfil.foto_perfil.url }}" 
                          alt="Foto de Perfil de {{ user_perfil.como_deseja_ser_chamado }}">
+                {# Senão, exibe um placeholder com a inicial do nome #}
                 {% else %}
                     <div class="h-72 w-72 rounded-lg bg-gray-500 flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-lg mx-auto md:mx-0">
+                        {# 
+                          Filtros encadeados:
+                          1. Usa 'como_deseja_ser_chamado'
+                          2. Se for vazio, usa 'username' (default)
+                          3. Pega o primeiro caractere (slice)
+                          4. Converte para maiúsculo (upper)
+                        #}
                         {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username|slice:":1"|upper }}
                     </div>
                 {% endif %}
             </div>
 
-            {# COLUNA 2: INFORMAÇÕES DO PERFIL E BOTÕES #}
-            {# Exibe o nome, username, tipo de usuário (Professor/Aluno) e botões de ação. #}
+            {# --- COLUNA 2: INFORMAÇÕES E BOTÕES DE AÇÃO --- #}
             <div class="text-center md:text-left md:col-span-2 md:ms-8">
                 <h1 class="text-4xl font-extrabold mb-1 text-white leading-tight">
                     {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username }}
@@ -53,6 +74,10 @@
                 
                 <p class="text-lg text-gray-300 italic mb-2">
                     @{{ user_perfil.username }}
+                    {# 
+                      Verifica a variável 'tipo_perfil' (passada pela view)
+                      para exibir a tag "Professor" ou "Aluno".
+                    #}
                     {% if tipo_perfil == 'professor' %}
                         — <span class="text-yellow-400 font-semibold">Professor(a) Verificado(a)</span>
                     {% else %}
@@ -64,9 +89,16 @@
                     <p class="text-sm text-gray-400 mt-1">Nome Completo: {{ user_perfil.nome_completo }}</p>
                 {% endif %}
 
-                {# Container para os botões de ação, alinhados à direita em telas maiores. #}
+                {# 
+                  Lógica de Botões de Ação:
+                  O botão exibido depende de QUEM está vendo o perfil.
+                #}
                 <div class="flex flex-col space-y-3 mt-6 items-center md:items-end md:justify-end md:me-8">
-                    {# Botões visíveis apenas para o próprio usuário (Editar Perfil, Minhas Mensagens). #}
+                    {# 
+                      Bloco 1: Dono do Perfil
+                      Verifica se o usuário logado ('request.user') é o
+                      mesmo usuário do perfil que está sendo visto ('user_perfil').
+                    #}
                     {% if request.user == user_perfil %}
                         <a href="{% url 'users:editar_perfil' %}" 
                            class="w-full md:w-auto inline-flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
@@ -78,7 +110,11 @@
                             <i class="fas fa-inbox me-2"></i> Minhas Mensagens
                         </a>
                         
-                    {# Botão visível para outros usuários autenticados, se o perfil for de um professor (Contatar Professor). #}
+                    {# 
+                      Bloco 2: Visitante Logado (Vendo Perfil de Professor)
+                      Exibido se o usuário logado NÃO for o dono, mas
+                      estiver autenticado E o perfil for de um professor.
+                    #}
                     {% elif request.user.is_authenticated and tipo_perfil == 'professor' %}
                         <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" 
                            class="w-full md:w-auto inline-flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
@@ -90,12 +126,13 @@
             
         </div>
 
-        {# SEÇÃO DE CONTEÚDO INFERIOR #}
-        {# Organiza as informações adicionais em uma grade de 3 colunas em telas grandes. #}
+        {# ======================================== #}
+        {# SEÇÃO DE CONTEÚDO INFERIOR                #}
+        {# ======================================== #}
         <div class="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {# BLOCO DE INFORMAÇÕES GERAIS #}
-            {# Card lateral com dados como residência, telefone (para o próprio user) e escolaridade, além de interesses. #}
+            {# --- BLOCO DE INFORMAÇÕES GERAIS (Sidebar) --- #}
+            {# 'lg:col-span-1' -> Ocupa 1 de 3 colunas em telas grandes #}
             <div class="lg:col-span-1 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-100">
                 <h3 class="text-xl font-bold text-gray-800 border-b-2 border-amber-400 pb-3 mb-4 flex items-center">
                     <i class="fas fa-info-circle me-3 text-amber-500"></i> Informações Gerais
@@ -109,6 +146,11 @@
                         </dd>
                     </div>
 
+                    {# 
+                      Verificação de Privacidade (Dono do Perfil):
+                      O telefone só é exibido se o 'request.user' for
+                      o dono do 'user_perfil'.
+                    #}
                     {% if request.user == user_perfil %}
                         <div class="flex items-center">
                             <i class="fas fa-phone-alt text-amber-500 me-3"></i>
@@ -126,41 +168,47 @@
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-gray-200">
-                            <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-tags me-3 text-amber-500"></i> Meus Interesses</h4>
-                            <p class="text-gray-700 text-justify leading-relaxed">{{ user_perfil.interesses|default:"Nenhum interesse listado."|linebreaksbr }}</p>
+                        <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-tags me-3 text-amber-500"></i> Meus Interesses</h4>
+                        {# O filtro 'linebreaksbr' converte quebras de linha (Enter) em <br> #}
+                        <p class="text-gray-700 text-justify leading-relaxed">{{ user_perfil.interesses|default:"Nenhum interesse listado."|linebreaksbr }}</p>
                     </div>
                 </dl>
             </div>
 
-            {# BLOCO DE DETALHES ESPECÍFICOS DO PERFIL #}
-            {# Ocupa as duas colunas restantes e muda o conteúdo se for Professor ou Aluno. #}
+            {# --- BLOCO DE DETALHES ESPECÍFICOS (Conteúdo Principal) --- #}
+            {# 'lg:col-span-2' -> Ocupa 2 de 3 colunas em telas grandes #}
             <div class="lg:col-span-2 space-y-8">
                 
-                {# CONTEÚDO PARA PROFESSORES #}
+                {# 
+                  Bloco 1: CONTEÚDO PARA PROFESSORES
+                  Verifica se o 'tipo_perfil' é 'professor' E se
+                  o objeto 'perfil_extensao' (o ProfessorProfile) existe.
+                #}
                 {% if tipo_perfil == 'professor' and perfil_extensao %} 
                     
-                    {# Card com informações profissionais do professor. #}
                     <div class="bg-amber-50 p-6 rounded-xl shadow-md border-l-4 border-amber-400">
                         <h3 class="text-2xl font-extrabold text-amber-800 mb-5 flex items-center">
                             <i class="fas fa-star text-amber-600 me-4"></i> Perfil Profissional
                         </h3>
                         
-                        {# Grid para exibir tarifa, status e se é voluntário. #}
+                        {# Grid dinâmico: 3 colunas se for voluntário, 2 se não for #}
                         <div class="grid grid-cols-1 {% if perfil_extensao.is_voluntario %}sm:grid-cols-3{% else %}sm:grid-cols-2{% endif %} gap-4 mb-6 text-center">
                             
-                            {# Box: Tarifa por Hora #}
+                            {# Box: Tarifa #}
                             <div class="p-4 bg-white rounded-lg shadow-sm border border-amber-200">
                                 <p class="text-lg font-bold text-gray-600">Tarifa por Hora:</p>
                                 <p class="text-2xl font-extrabold text-amber-700">
+                                    {# Mostra o valor apenas se for > 0 #}
                                     {% if perfil_extensao.tarifa_hora and perfil_extensao.tarifa_hora > 0 %}
                                         R$ {{ perfil_extensao.tarifa_hora|floatformat:2 }}/h
+                                    {# Senão (tarifa = 0 ou None), exibe "Gratuito" #}
                                     {% else %}
                                         <span class="text-gray-500">Gratuito</span>
                                     {% endif %}
                                 </p>
                             </div>
                             
-                            {# Box: Status (Aceitando Alunos / Inativo) #}
+                            {# Box: Status #}
                             <div class="p-4 bg-white rounded-lg shadow-sm border border-amber-200">
                                 <p class="text-lg font-bold text-gray-600">Status:</p>
                                 <p class="text-2xl font-extrabold text-gray-800">
@@ -172,7 +220,7 @@
                                 </p>
                             </div>
 
-                            {# Box: Contribuição Voluntária (aparece apenas se for voluntário) #}
+                            {# Box: Voluntário (só aparece se 'is_voluntario' for True) #}
                             {% if perfil_extensao.is_voluntario %}
                             <div class="p-4 bg-white rounded-lg shadow-sm border border-amber-200">
                                 <p class="text-lg font-bold text-gray-600">Contribuição:</p>
@@ -183,25 +231,26 @@
                             {% endif %}
                         </div>
 
-                        {# Seção: Disciplinas Lecionadas pelo professor. #}
+                        {# Seção: Disciplinas #}
                         <div class="mb-6 pt-4 border-t border-amber-200">
                             <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-book-open me-3 text-amber-600"></i> Disciplinas Lecionadas</h4>
                             <p class="text-gray-700 leading-relaxed">{{ perfil_extensao.disciplinas|default:"Nenhuma disciplina listada."|linebreaksbr }}</p>
                         </div>
 
-                        {# Seção: Biografia Profissional do professor. #}
+                        {# Seção: Bio Profissional #}
                         <div class="mb-6 pt-4 border-t border-amber-200">
                             <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-briefcase me-3 text-amber-600"></i> Sobre o Professor</h4>
                             <p class="text-gray-700 text-justify leading-relaxed">{{ perfil_extensao.bio_profissional|default:"Sem descrição profissional."|linebreaksbr }}</p>
                         </div>
                         
-                        {# Seção: Detalhes sobre a metodologia e modalidades de aula. #}
+                        {# Seção: Metodologia #}
                         <div class="p-5 rounded-lg mt-6">
                             <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-school me-3 text-amber-700"></i> Detalhes e Metodologia da Aula</h4>
                             <p class="text-gray-700 text-justify leading-relaxed mb-4">{{ perfil_extensao.sobre_a_aula|default:"Sem detalhes sobre a metodologia."|linebreaksbr }}</p>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 mt-4 pt-3 border-t ">
                                 <span class="inline-flex items-center text-sm text-gray-700">
+                                    {# Cor do ícone muda com base no booleano #}
                                     <i class="fas fa-globe me-2 {% if perfil_extensao.aceita_online %}text-amber-600{% else %}text-gray-500{% endif %}"></i>
                                     Aulas Online: 
                                     <span class="font-semibold ms-1">{% if perfil_extensao.aceita_online %}Sim{% else %}Não{% endif %}</span>
@@ -211,16 +260,22 @@
                                     Aulas em Grupo: 
                                     <span class="font-semibold ms-1">{% if perfil_extensao.aceita_grupo %}Sim{% else %}Não{% endif %}</span>
                                 </span>
+                                
+                                {# *** CORREÇÃO DE BUG *** #}
+                                {# O código original verificava 'modalidades' mas exibia 'modalidade'. Corrigido. #}
                                 {% if perfil_extensao.modalidades %}
-                                    <p class="text-sm mt-2 text-gray-700 sm:col-span-2"><span class="font-semibold">Local de Aula:</span> {{ perfil_extensao.modalidade }}</p>
+                                    <p class="text-sm mt-2 text-gray-700 sm:col-span-2"><span class="font-semibold">Local de Aula:</span> {{ perfil_extensao.modalidades }}</p>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                 
-                {# CONTEÚDO PARA ALUNOS #}
-                {% else %} {# Caso o perfil seja de um aluno #}
-                    {# Card com a biografia e histórico de aprendizagem do aluno. #}
+                {# 
+                  Bloco 2: CONTEÚDO PARA ALUNOS
+                  Este é o 'else' do 'if tipo_perfil == "professor"'.
+                  Exibido se o perfil for de um aluno.
+                #}
+                {% else %}
                     <div class="bg-amber-50 p-6 rounded-xl shadow-md border-l-4 border-amber-400">
                         <h3 class="text-2xl font-extrabold text-amber-800 mb-5 flex items-center">
                             <i class="fas fa-user-circle text-amber-600 me-4"></i> Minha Biografia
@@ -234,8 +289,12 @@
                     </div>
                 {% endif %}
                 
-                {# Botão de Contato para Professor #}
-                {# Exibido para usuários autenticados que não são o dono do perfil de um professor. #}
+                {# 
+                  Bloco 3: Call to Action (Botão de Contato)
+                  Redundante com o botão do cabeçalho, mas bom para UX.
+                  Aparece no final da página se o visitante for logado,
+                  o perfil for de professor, e o visitante não for o dono.
+                #}
                 {% if request.user.is_authenticated and tipo_perfil == 'professor' and request.user != user_perfil %}
                     <div class="text-center p-6 bg-gray-100 rounded-xl shadow-md border border-gray-200">
                         <p class="mb-4 text-xl font-semibold text-gray-800">Interessado nas aulas de {{ user_perfil.como_deseja_ser_chamado }}?</p>
@@ -253,5 +312,4 @@
     </div>
 </div>
 
-{# Fim do bloco de conteúdo principal. #}
 {% endblock content %}

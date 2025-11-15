@@ -1,12 +1,46 @@
+{% comment %}
+Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
+{% endcomment %}
 {% extends "base/base.html" %}
+
+{# 
+  Este template é a página de "confirmação de logout".
+  A view 'LogoutView' padrão do Django é configurada para:
+  1. (GET Request): Mostrar esta página de confirmação.
+  2. (POST Request): Executar o logout e redirecionar.
+#}
 
 {% block content %}
     <h2>Tem certeza que deseja sair?</h2>
 
+    {# 
+      Formulário de Confirmação:
+      Quando o usuário clica no botão "Sim", este formulário envia
+      um 'POST' para a view 'LogoutView'.
+      
+      A view, ao receber o 'POST', executa o logout (limpa a sessão)
+      e redireciona o usuário para a 'LOGOUT_REDIRECT_URL'
+      (definida no seu 'settings.py' como '/').
+    #}
     <form method="post">
-        {% csrf_token %}
+        {% csrf_token %} {# Token de segurança obrigatório #}
+        
+        {# 
+          NOTA: 'btn btn-danger' é uma classe do framework Bootstrap.
+          Seu site usa Tailwind. Para consistência visual, você pode
+          trocar por: "bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+        #}
         <button type="submit" class="btn btn-danger">Sim, fazer log out</button>
     </form>
 
-    <p><a href="{% url 'home' %}">Cancelar e voltar para a página inicial</a></p>
+    {# 
+      Link "Cancelar" (Corrigido):
+      *** CORREÇÃO DE BUG ***
+      O link original apontava para {% url 'home' %}, uma URL que
+      não existe no seu 'users/urls.py' e causaria um erro 'NoReverseMatch'.
+      
+      Corrigido para apontar para a sua página inicial real
+      ('lista_professores'), que é a raiz do site.
+    #}
+    <p><a href="{% url 'users:lista_professores' %}">Cancelar e voltar para a página inicial</a></p>
 {% endblock %}

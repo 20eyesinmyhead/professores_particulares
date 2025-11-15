@@ -1,9 +1,19 @@
+"""
+Definição dos Modelos (Tabelas) para o aplicativo 'users'.
+
+Este arquivo contém a estrutura de todo o banco de dados do aplicativo:
+1. CustomUserManager: Gerencia a criação de usuários.
+2. CustomUser: A tabela central de usuários (alunos e professores).
+3. ProfessorProfile: Uma extensão do CustomUser com dados de professor.
+4. ContactProfessor: A tabela que armazena as mensagens de contato.
+"""
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.conf import settings # Para usar settings.AUTH_USER_MODEL
+from django.conf import settings
 
 # ==============================================================================
 # 1. CUSTOM USER MANAGER
@@ -11,23 +21,35 @@ from django.conf import settings # Para usar settings.AUTH_USER_MODEL
 
 class CustomUserManager(BaseUserManager):
     """
-    Manager de modelo customizado para o CustomUser.
-    Sobrescreve create_user e create_superuser.
+    Gerenciador customizado para o modelo 'CustomUser'.
+    Necessário pois sobrescrevemos o modelo de usuário padrão para
+    usar 'email' como o campo de login (USERNAME_FIELD).
     """
+    
     def create_user(self, email, password=None, **extra_fields):
+        """
+        Cria e salva um usuário comum com o email e senha fornecidos.
+        """
         if not email:
             raise ValueError(_('O email deve ser fornecido'))
+        
         email = self.normalize_email(email)
-        # O AbstractUser requer 'username', mas o CustomUserManager não está usando aqui.
-        # Adicionei o username de volta para compatibilidade com o AbstractUser/REQUIRED_FIELDS
-        username = extra_fields.get('username') or email.split('@')[0]
+        
+        # 'username' ainda é necessário (definido em REQUIRED_FIELDS)
+        username = extra_fields.get('username')
+        if not username:
+            # Fornece um fallback se o username não for passado
+            username = email.split('@')[0] 
+            
         user = self.model(email=email, username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        """Cria e salva um superusuário com o email e senha fornecidos."""
+        """
+        Cria e salva um superusuário (admin) com o email e senha fornecidos.
+        """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
@@ -40,58 +62,63 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 # ==============================================================================
-# 2. CUSTOM USER MODEL (Substituindo o User padrão do Django)
+# 2. CUSTOM USER MODEL (Tabela Principal)
 # ==============================================================================
 
 class CustomUser(AbstractUser):
+    """
+    Modelo de Usuário customizado (substitui o 'User' padrão do Django).
+    Armazena todos os dados comuns a Alunos e Professores.
+    """
     
-    # Sobrescrevendo email para usá-lo como campo obrigatório e único
+    # --- Campos de Autenticação ---
+    # Sobrescreve 'AbstractUser' para tornar 'email' o login e ser único.
     email = models.EmailField(_('endereço de email'), unique=True)
     
-    # Remove a obrigatoriedade dos campos de nome do AbstractUser (first/last_name)
+    # Remove 'first_name' e 'last_name' padrão do Django.
     first_name = None
     last_name = None
     
-    # Adicionamos os campos customizados
+    # --- Campos de Perfil Pessoal (Comuns a todos) ---
     nome_completo = models.CharField(_('Nome Completo'), max_length=150, blank=False)
     como_deseja_ser_chamado = models.CharField(_('Como Deseja Ser Chamado'), max_length=50, blank=True)
     cpf = models.CharField(_('CPF'), max_length=14, unique=True, null=True, blank=True)
     telefone = models.CharField(_('Telefone'), max_length=20, blank=True)
     data_nascimento = models.DateField(_('Data de Nascimento'), null=True, blank=True)
     
-    # Localização
+    # --- Localização ---
     cidade = models.CharField(_('Cidade'), max_length=100, blank=True)
     cep = models.CharField(_('CEP'), max_length=10, blank=True)
     
-    # Perfil Geral
+    # --- Campos de Perfil Detalhado (Aluno/Geral) ---
     foto_perfil = models.ImageField(_('Foto de Perfil'), upload_to='profile_pics/', null=True, blank=True)
     escolaridade = models.TextField(_('Escolaridade'), blank=True)
     interesses = models.TextField(_('Interesses e Hobbies'), blank=True)
     historico_aprendizagem = models.TextField(_('Histórico de Aprendizagem (Aluno)'), blank=True)
     biografia = models.TextField(_('Biografia Pessoal'), blank=True)
     
-    # Campo Chave de Role
+    # --- Campo de Papel (Role) ---
+    # Este campo 'liga' o perfil de professor
     is_professor = models.BooleanField(_('É Professor'), default=False, 
         help_text=_('Designa se este usuário ativou a modalidade professor.')
     )
     
-    # Gerenciador customizado
-    objects = CustomUserManager()
+    # --- Configuração do Modelo ---
+    objects = CustomUserManager() # Usa o gerenciador customizado
     
-    # Definindo o campo de login padrão como 'username' (padrão do AbstractUser)
-    # Mas definindo email como único e required.
-    USERNAME_FIELD = 'email'
-    # Campos que serão solicitados ao criar usuário via createsuperuser
-    REQUIRED_FIELDS = ['username', 'nome_completo'] 
+    USERNAME_FIELD = 'email' # Define 'email' como o campo de login
+    REQUIRED_FIELDS = ['username', 'nome_completo'] # Campos pedidos no 'createsuperuser'
 
     class Meta:
         verbose_name = _('Usuário')
         verbose_name_plural = _('Usuários')
 
     def __str__(self):
+        # Representação em texto do objeto (ex: no Admin)
         return self.email
 
     def get_full_name(self):
+        # Método usado pelo Django para obter o nome principal
         return self.nome_completo
     
 # ==============================================================================
@@ -99,18 +126,22 @@ class CustomUser(AbstractUser):
 # ==============================================================================
 
 class ProfessorProfile(models.Model):
-    MODALIDADE_CHOICES = (
-        ('P', 'Presencial'),
-        ('O', 'Online'),
-        ('AD', 'Domicílio do Aluno'),
-        ('AP', 'Domicílio do Professor'),
-        ('TO', 'Todos (Presencial e Online)') # Adiciona opção consolidada
+    """
+    Extensão do modelo 'CustomUser' com dados específicos de Professores.
+    Usa um relacionamento "Um-para-Um" (OneToOneField), significando que
+    um usuário só pode ter um perfil de professor, e vice-versa.
+    """
+    
+    
+    # --- Vínculo com Usuário ---
+    # 'on_delete=models.CASCADE': Se o CustomUser for apagado, este perfil também será.
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='professorprofile' # Permite acesso reverso: user.professorprofile
     )
     
-    # Conexão: One-to-One com o CustomUser
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='professorprofile')
-    
-    # Detalhes Profissionais
+    # --- Informações Profissionais ---
     disciplinas = models.TextField(_('Disciplinas Lecionadas'), 
         help_text=_('Ex: Matemática, Física, Português. Separe por vírgulas.')
     )
@@ -119,28 +150,33 @@ class ProfessorProfile(models.Model):
         help_text=_('Experiência profissional relevante, certificações, etc.')
     )
     bio_profissional = models.TextField(_('Bio Profissional'), blank=True, 
-        help_text=_('Breve descrição da sua experiência e qualificações como professor.')
+        help_text=_('Breve descrição da sua experiência e qualificações.')
     )
     sobre_a_aula = models.TextField(_('Sobre a Aula'), blank=True, 
         help_text=_('Detalhes sobre sua metodologia e formato de aula.')
     )
+    
+    # --- Mídias ---
+    foto_profissional = models.ImageField(_('Foto Profissional'), upload_to='professor_pics/', null=True, blank=True, 
+        help_text=_('Uma foto específica para seu perfil profissional.')
+    )
 
-    # Opções e Status
+    # --- Configurações e Status ---
+    MODALIDADE_CHOICES = (
+        ('P', 'Presencial'),
+        ('O', 'Online'),
+        ('AD', 'Domicílio do Aluno'),
+        ('AP', 'Domicílio do Professor'),
+        ('TO', 'Todos (Presencial e Online)')
+    )
+    modalidades = models.CharField(_('Modalidades de Aula'), max_length=2, choices=MODALIDADE_CHOICES, default='O', blank=True)
     is_voluntario = models.BooleanField(_('É Voluntário'), default=False)
     aceita_online = models.BooleanField(_('Aceita Aulas Online'), default=False)
     aceita_grupo = models.BooleanField(_('Aceita Aulas em Grupo'), default=False)
     status_ativo = models.BooleanField(_('Ativamente Aceitando Alunos'), default=True)
     data_validacao = models.DateField(_('Data de Ativação do Perfil'), null=True, blank=True)
     
-    # Modalidades (Escolhas)
-    modalidades = models.CharField(_('Modalidades de Aula'), max_length=2, choices=MODALIDADE_CHOICES, default='O', blank=True)
-    
-    # Mídias
-    foto_profissional = models.ImageField(_('Foto Profissional'), upload_to='professor_pics/', null=True, blank=True, 
-        help_text=_('Uma foto específica para seu perfil profissional, se diferente da foto geral.')
-    )
-
-    # Métricas (Calculadas)
+    # --- Métricas (a serem calculadas por outra lógica) ---
     media_avaliacoes = models.DecimalField(_('Média de Avaliações'), max_digits=3, decimal_places=2, default=0.00)
 
     class Meta:
@@ -152,26 +188,51 @@ class ProfessorProfile(models.Model):
 
 
 # ==============================================================================
-# 4. MODELO DE CONTATO: CONTACT PROFESSOR (ADICIONADO)
+# 4. MODELO DE CONTATO: CONTACT PROFESSOR
 # ==============================================================================
 
 class ContactProfessor(models.Model):
-    # O aluno que enviou a mensagem (pode ser apagado - SET_NULL)
-    aluno = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, 
-                              related_name='mensagens_enviadas', verbose_name=_('Aluno Remetente'))
-    # O professor que recebeu a mensagem (se o professor for apagado, a mensagem se apaga - CASCADE)
-    professor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, 
-                                  related_name='mensagens_recebidas', verbose_name=_('Professor Destinatário'))
+    """
+    Armazena cada mensagem enviada de um Aluno para um Professor.
+    Funciona como o "histórico" de contatos da plataforma.
+    """
     
+    
+    # --- Vínculos (Chaves Estrangeiras) ---
+    
+    # 'aluno': O remetente. 
+    # 'on_delete=models.SET_NULL': Se o aluno for excluído, a mensagem 
+    # é mantida, mas o campo 'aluno' fica nulo.
+    aluno = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        related_name='mensagens_enviadas', 
+        verbose_name=_('Aluno Remetente')
+    )
+    
+    # 'professor': O destinatário.
+    # 'on_delete=models.CASCADE': Se o professor for excluído, todas as 
+    # mensagens recebidas por ele também são excluídas.
+    professor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='mensagens_recebidas', 
+        verbose_name=_('Professor Destinatário')
+    )
+    
+    # --- Conteúdo da Mensagem ---
     assunto = models.CharField(_('Assunto'), max_length=150)
     mensagem = models.TextField(_('Mensagem'))
     
+    # --- Metadados ---
     lida = models.BooleanField(_('Lida pelo Professor'), default=False)
-    data_envio = models.DateTimeField(_('Data de Envio'), auto_now_add=True)
+    data_envio = models.DateTimeField(_('Data de Envio'), auto_now_add=True) # Preenchido automaticamente
     
     class Meta:
         verbose_name = _('Mensagem de Contato')
         verbose_name_plural = _('Mensagens de Contato')
+        # Ordena as mensagens da mais nova para a mais antiga por padrão
         ordering = ['-data_envio']
 
     def __str__(self):
@@ -180,33 +241,18 @@ class ContactProfessor(models.Model):
 
 
 # ==============================================================================
-# 5. SIGNALS (Conectando os modelos)
+# 5. SIGNALS (Automação entre Modelos)
 # ==============================================================================
 
 @receiver(post_save, sender=CustomUser)
-def create_professor_profile(sender, instance, created, **kwargs):
+def ensure_professor_profile(sender, instance, **kwargs):
     """
-    Cria um ProfessorProfile quando um CustomUser é criado E é um professor.
-    """
-    if instance.is_professor:
-        # Tenta pegar o perfil existente
-        try:
-            profile = instance.professorprofile
-        except ProfessorProfile.DoesNotExist:
-            profile = None
-            
-        # Se não existe e deve existir (is_professor=True), cria.
-        if not profile:
-            ProfessorProfile.objects.create(user=instance)
-
-@receiver(post_save, sender=CustomUser)
-def save_professor_profile(sender, instance, **kwargs):
-    """
-    Salva o ProfessorProfile quando o CustomUser for salvo, se existir.
+    Signal (disparado após 'CustomUser' ser salvo) para garantir que um
+    'ProfessorProfile' exista se o usuário tiver 'is_professor' = True.
+    
+    Isso é mais eficiente e limpo do que os dois signals anteriores.
+    O 'get_or_create' só cria o perfil se ele ainda não existir.
     """
     if instance.is_professor:
-        try:
-            instance.professorprofile.save()
-        except ProfessorProfile.DoesNotExist:
-            # Não faz nada se o perfil ainda não foi criado pelo signal de criação acima.
-            pass
+        # Tenta buscar o perfil; se não existir, cria um novo.
+        ProfessorProfile.objects.get_or_create(user=instance)

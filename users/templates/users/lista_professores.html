@@ -1,21 +1,35 @@
+{% comment %}
+Herda a estrutura principal (menu de navegação, rodapé)
+do arquivo 'base/base.html'.
+{% endcomment %}
 {% extends 'base/base.html' %}
 {% load static %}
-{% load custom_tags %} {# Carrega o filtro 'add_class' para manipular classes CSS em elementos de formulário. #}
-{% load split_tag %} {# Carrega o filtro 'split' para dividir strings, útil para listas (não usado diretamente aqui). #}
+{# Carrega a tag customizada 'add_class' (se usada em formulários) #}
+{% load custom_tags %}
+{# Carrega a tag customizada 'split' (se usada para listas) #}
+{% load split_tag %}
 
-{# Define o título da página. O valor é passado do contexto do Django (da view). #}
+{# 
+  Define o título da página. 
+  A variável 'titulo' é passada pela view 'lista_professores'
+  (ex: "Encontre o Professor Certo!" ou "Professores Voluntários").
+#}
 {% block title %}{{ titulo }}{% endblock %}
 
-{# Início do bloco de conteúdo principal da página. #}
+{# Início do bloco de conteúdo principal #}
 {% block content %}
 
-{# Container principal que envolve todo o conteúdo da lista de professores. #}
 <div class="my-5">
 
-    {# Seção de título e descrição da página. O conteúdo da descrição muda se for a lista de voluntários. #}
+    {# --- Seção 1: Título da Página --- #}
     <div class="text-center mb-8">
         <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900">{{ titulo }}</h1>
         <p class="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+            {# 
+              Lógica Condicional para a Descrição:
+              Verifica a variável 'somente_voluntarios' (passada pela view/URL)
+              para exibir o texto de descrição apropriado.
+            #}
             {% if somente_voluntarios %}
                 Conecte-se com nossa rede de professores que oferecem aulas voluntárias. Consulte a disponibilidade.
             {% else %}
@@ -24,25 +38,41 @@
         </p>
     </div>
 
-    {# Seção da barra de busca. Permite ao usuário filtrar professores por nome, disciplina ou cidade. #}
+    {# --- Seção 2: Barra de Busca --- #}
     <div class="flex justify-center mb-6">
         <div class="w-full max-w-2xl">
-            {# O formulário envia a requisição GET para a mesma URL, com um parâmetro 'q' para a busca. #}
+            {# 
+              O formulário usa o método 'GET', o que significa que os dados
+              serão passados pela URL (ex: /?q=matematica).
+              A 'action' (URL de destino) também é dinâmica, apontando para
+              a lista de voluntários ou a lista principal.
+            #}
             <form method="GET" action="{% if somente_voluntarios %}{% url 'users:lista_voluntarios' %}{% else %}{% url 'users:lista_professores' %}{% endif %}" 
                   class="flex shadow-md rounded-full bg-white border border-gray-200">
+                
                 <input
                     type="search"
-                    name="q" {# O nome 'q' é o parâmetro de busca que a view do Django irá ler. #}
+                    name="q" {# O nome 'q' é o que a view 'lista_professores' lê (request.GET.get('q')) #}
                     class="flex-grow px-5 py-3 text-gray-700 rounded-l-full focus:outline-none focus:ring-2 focus:ring-amber-500 border-none"
                     placeholder="Buscar por nome, disciplina ou cidade..."
                     aria-label="Search"
-                    value="{{ request.GET.q|default:'' }}" {# Preenche o campo de busca com o termo de busca atual, se houver. #}
+                    {# 
+                      Funcionalidade "Sticky Form":
+                      O filtro 'default:''' preenche o campo de busca com o termo
+                      que o usuário já buscou, lendo-o de 'request.GET.q'.
+                    #}
+                    value="{{ request.GET.q|default:'' }}"
                 >
                 <button class="bg-amber-500 text-white rounded-r-full px-6 py-3 font-semibold hover:bg-amber-600 transition duration-150" type="submit">
                     <i class="fas fa-search mr-2 sm:mr-0"></i>
-                    <span class="hidden sm:inline">Buscar</span>
+                    <span class="hidden sm:inline">Buscar</span> {# Oculta o texto "Buscar" em telas pequenas #}
                 </button>
-                {# Botão "Limpar" que aparece se já houver um termo de busca, resetando a lista. #}
+                
+                {# 
+                  Botão "Limpar" Condicional:
+                  Este link só aparece se 'request.GET.q' existir, ou seja,
+                  se o usuário já tiver feito uma busca.
+                #}
                 {% if request.GET.q %}
                     <a href="{% if somente_voluntarios %}{% url 'users:lista_voluntarios' %}{% else %}{% url 'users:lista_professores' %}{% endif %}" 
                        class="text-gray-500 hover:text-gray-700 rounded-full ml-2 px-4 py-3 transition duration-150 hidden sm:block">Limpar</a>
@@ -51,12 +81,20 @@
         </div>
     </div>
     
-    {# Seção para exibir mensagens de feedback ao usuário (sucesso, erro, alerta). #}
+    {# --- Seção 3: Mensagens de Feedback --- #}
+    {# 
+      Bloco para exibir mensagens de feedback (ex: "Perfil salvo com sucesso").
+      As mensagens são enviadas pela 'view' usando 'messages.success(request, ...)'
+    #}
     {% if messages %}
         <div class="max-w-4xl mx-auto space-y-3 mb-4">
+            {# Itera sobre todas as mensagens na fila #}
             {% for message in messages %}
             <div class="p-3 text-sm rounded-lg shadow-md 
-                {# Altera a cor do alerta com base no tipo da mensagem (definido por 'message.tags'). #}
+                {# 
+                  Classes de Cor Condicionais:
+                  Muda a cor do alerta com base na 'tag' da mensagem (success, error, warning, info).
+                #}
                 {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-teal-100 text-teal-700{% endif %}">
                 {{ message }}
             </div>
@@ -64,80 +102,105 @@
         </div>
     {% endif %}
 
-    {# Seção principal para a listagem dos cards de professores. Layout em grid responsivo. #}
+    {# --- Seção 4: Grade de Professores --- #}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {# Verifica se existem professores para exibir. #}
+        {# 
+          Condicional Principal:
+          Verifica se a lista 'professores' (vinda da view) não está vazia.
+        #}
         {% if professores %}
-            {# Loop através de cada objeto 'user_perfil' na lista de 'professores' fornecida pela view. #}
+            {# 
+              Loop Principal:
+              Itera sobre cada 'user_perfil' na lista de 'professores'.
+            #}
             {% for user_perfil in professores %}
-                {# Card individual de cada professor. Estilo com sombra e efeito hover. #}
+                {# Card Individual do Professor (com efeito 'hover') #}
                 <div class="bg-white h-full shadow-lg rounded-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
 
+                    {# 
+                      Container do Conteúdo do Card.
+                      'flex-grow' faz este 'div' crescer para preencher o espaço,
+                      empurrando os botões (com 'mt-auto') para o final.
+                    #}
                     <div class="p-6 text-center flex flex-col items-center flex-grow">
                         
-                        {# Link que leva para a página de detalhes do perfil do professor ao clicar na imagem/placeholder. #}
+                        {# Link para o perfil de detalhes, envolvendo a imagem #}
                         <a href="{% url 'users:perfil_detalhe' username=user_perfil.username %}">
-                            {# Exibe a foto de perfil do professor se ela existir. #}
+                            {# Lógica da Imagem: Se 'foto_perfil' existir, mostra. #}
                             {% if user_perfil.foto_perfil %}
                                 <img src="{{ user_perfil.foto_perfil.url }}" class="rounded-lg mb-3 border-4 border-gray-500 h-72 w-72 object-cover" alt="Foto de {{ user_perfil.username }}">
-                            {# Se não houver foto, exibe um placeholder com a primeira letra do nome. #}
+                            {# Se não, mostra um placeholder com a primeira inicial do nome. #}
                             {% else %}
                                 <div class="rounded-lg mb-3 border-4 border-gray-500 h-72 w-72 flex items-center justify-center bg-gray-200 text-gray-800 text-3xl font-bold">
+                                    {# 
+                                      Filtro 'default': Usa 'como_deseja_ser_chamado'; se estiver vazio, usa 'username'.
+                                      Filtro 'slice': Pega o primeiro caractere.
+                                      Filtro 'upper': Converte para maiúscula.
+                                    #}
                                     {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username|slice:":1"|upper }}
                                 </div>
                             {% endif %}
                         </a>
 
-                        {# Nome do professor. Exibe 'como_deseja_ser_chamado' ou o 'username' como fallback. #}
+                        {# Nome (com o mesmo fallback do 'default') #}
                         <h2 class="text-2xl font-bold text-gray-900 mb-2">
                             {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username }}
                         </h2>
                         
-                        {# Lista das disciplinas lecionadas pelo professor. Truncada para não ocupar muito espaço. #}
+                        {# Disciplinas (truncadas para 50 caracteres para não quebrar o layout) #}
                         <p class="text-gray-600 mb-2 text-sm">
                             <i class="fas fa-book-open mr-1 text-gray-500"></i>
+                            {# 
+                              Acesso ao modelo relacionado:
+                              'user_perfil' é o 'CustomUser'.
+                              'user_perfil.professorprofile' acessa o modelo 'ProfessorProfile' vinculado.
+                            #}
                             <strong>{{ user_perfil.professorprofile.disciplinas|truncatechars:50|default:"Não informado" }}</strong>
                         </p>
 
-                        {# Cidade de residência do professor. #}
+                        {# Cidade #}
                         <p class="text-gray-600 mb-2 text-sm">
                             <i class="fas fa-map-marker-alt mr-1 text-gray-500"></i>
                             {{ user_perfil.cidade|default:"Local não informado" }}
                         </p>
 
-                        {# Modalidades de aula oferecidas (presencial, online, híbrida). #}
+                        {# Modalidade (usa 'get_modalidades_display' para mostrar o texto legível, ex: "Online") #}
                         <p class="text-gray-600 mb-3 text-sm">
                             <i class="fas fa-chalkboard-teacher mr-1 text-gray-500"></i>
                             Modalidade: <strong>{{ user_perfil.professorprofile.get_modalidades_display }}</strong>
                         </p>
 
-                        {# Badges para indicar se a aula é gratuita (voluntária) ou o valor da tarifa. #}
+                        {# Lógica de Badges (Tarifa/Voluntário) #}
                         <div class="mb-4 flex flex-wrap justify-center gap-2">
                             
-                            {# Badge para professores voluntários (aula gratuita). #}
+                            {# Se 'is_voluntario' for True, mostra "Aula Gratuita" #}
                             {% if user_perfil.professorprofile.is_voluntario %}
                                 <span class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Aula Gratuita</span>
                             {% endif %}
                             
-                            {# Badge exibindo a tarifa por hora, se houver e for maior que zero. #}
+                            {# Se a tarifa existir E for maior que zero, mostra o valor #}
                             {% if user_perfil.professorprofile.tarifa_hora and user_perfil.professorprofile.tarifa_hora > 0 %}
                                 <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-800">
                                     R$ {{ user_perfil.professorprofile.tarifa_hora|floatformat:2 }} / hora
                                 </span>
-                            {# Se não for voluntário e não tiver tarifa definida, indica que a tarifa é a negociar. #}
+                            {# Se não for voluntário E não tiver tarifa (tarifa = 0 ou None), mostra "A Negociar" #}
                             {% elif not user_perfil.professorprofile.is_voluntario %}
                                 <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Tarifa a Negociar</span>
                             {% endif %}
                             
                         </div>
 
-                        {# Botões de ação para ver o perfil completo ou contatar o professor. #}
+                        {# 
+                          Botões de Ação.
+                          'mt-auto' (margin-top: auto) empurra este 'div' para o 
+                          final do card, alinhando os botões (graças ao 'flex-grow' acima).
+                        #}
                         <div class="mt-auto w-full pt-4 border-t border-gray-100">
-                            {# Botão "Ver Perfil" que navega para a página de detalhes do professor. #}
+                            {# Botão "Ver Perfil" (usa o 'username' para a URL) #}
                             <a href="{% url 'users:perfil_detalhe' username=user_perfil.username %}" class="inline-block bg-white text-gray-700 font-semibold px-4 py-2 rounded-md border border-gray-400 hover:bg-gray-100 text-sm transition duration-150 mr-2">
                                 Ver Perfil <i class="fas fa-arrow-right ml-1"></i>
                             </a>
-                            {# Botão "Contatar" que leva ao formulário de contato do professor. #}
+                            {# Botão "Contatar" (usa a 'pk' (ID) do usuário para a URL) #}
                             <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" class="inline-block bg-amber-500 text-white font-semibold px-4 py-2 rounded-md hover:bg-amber-600 text-sm transition duration-150">
                                 Contatar <i class="fas fa-envelope ml-1"></i>
                             </a>
@@ -145,7 +208,11 @@
                     </div>
                 </div>
             {% endfor %}
-        {# Mensagem exibida caso nenhum professor seja encontrado com os filtros aplicados. #}
+        {# 
+          Bloco "Else" (Não Encontrado):
+          Isto é o que é exibido se a lista 'professores' estiver vazia
+          (seja por não haver professores ou por uma busca sem resultados).
+        #}
         {% else %}
             <div class="md:col-span-2 lg:col-span-3 text-center my-10">
                 <div class="bg-amber-50 border border-amber-300 text-amber-800 p-8 rounded-lg shadow-md max-w-lg mx-auto">

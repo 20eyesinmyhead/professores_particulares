@@ -1,3 +1,22 @@
+{# 
+==============================================================================
+TEMPLATE DE E-MAIL: Notificação do Professor
+==============================================================================
+
+Este arquivo é um template de E-MAIL, não uma página web.
+Ele é carregado pela view 'contato_professor' usando 'render_to_string',
+preenchido com os dados da mensagem, e enviado por e-mail (via SendGrid)
+para o professor.
+
+AVISO DE COMPATIBILIDADE:
+O layout é construído usando <table> (em vez de <div>) e o estilo é
+"inline" (style="...") em vez de um arquivo CSS. Isso é
+necessÁRIO para garantir que o e-mail seja renderizado corretamente
+na maioria dos clientes de e-mail (Gmail, Outlook, Apple Mail, etc.),
+que têm suporte muito limitado a CSS moderno.
+
+#}
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -5,23 +24,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Novo Interesse de Aula</title>
     <style>
-        /* CSS INLINE para máxima compatibilidade com clientes de e-mail */
+        {# 
+          CSS "in-head":
+          Este CSS é para clientes que TÊM algum suporte (como apps de
+          celular) e define o comportamento responsivo básico.
+          A maior parte do estilo, no entanto, é feita "inline" no corpo.
+        #}
         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
         table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-        a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+        img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+        a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+        
+        {# Media query para dispositivos móveis #}
         @media screen and (max-width: 525px) {
             .wrapper { width: 100% !important; max-width: 100% !important; }
-            .mobile-hide { display: none; }
         }
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f4f4;">
 
+{# 
+  Tabela Externa (Wrapper):
+  Define o fundo cinza e centraliza o conteúdo.
+#}
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <td bgcolor="#f4f4f4" align="center" style="padding: 20px 10px 40px 10px;">
+            
+            {# 
+              Tabela Interna (Conteúdo Principal):
+              Define a largura máxima (600px) e o fundo branco do card.
+            #}
             <table border="0" cellpadding="0" cellspacing="0" width="100%" class="wrapper" style="max-width: 600px;">
+                {# --- Cabeçalho --- #}
                 <tr>
                     <td bgcolor="#ffffff" align="center" style="border-radius: 8px 8px 0 0; padding: 40px 20px 20px 20px;">
                         <h1 style="font-family: Arial, sans-serif; font-size: 24px; color: #333333; margin: 0;">
@@ -29,12 +64,20 @@
                         </h1>
                     </td>
                 </tr>
+                
+                {# --- Corpo do E-mail --- #}
                 <tr>
                     <td bgcolor="#ffffff" align="left" style="padding: 20px 30px 40px 30px; border-radius: 0 0 8px 8px; color: #666666; font-family: Arial, sans-serif; font-size: 16px; line-height: 25px;">
                         
-                        <p style="margin: 0;">Olá, **{{ professor_nome }}**!</p>
-                        <p>O aluno(a) **{{ aluno_nome }}** manifestou interesse nas suas aulas e enviou a seguinte mensagem:</p>
+                        {# 
+                          Injeção de Dados (Django):
+                          A view 'contato_professor' passa as variáveis
+                          'professor_nome' e 'aluno_nome' para este template.
+                        #}
+                        <p style="margin: 0;">Olá, <strong>{{ professor_nome }}</strong>!</p>
+                        <p>O aluno(a) <strong>{{ aluno_nome }}</strong> manifestou interesse nas suas aulas e enviou a seguinte mensagem:</p>
 
+                        {# --- Tabela da Mensagem (Caixa Cinza) --- #}
                         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; border: 1px solid #eeeeee; border-radius: 4px;">
                             <tr>
                                 <td style="padding: 15px; background-color: #f9f9f9; font-family: Arial, sans-serif;">
@@ -42,22 +85,39 @@
                                     <p style="margin-top: 0; margin-bottom: 15px; font-size: 16px; font-weight: bold; color: #333333;">{{ assunto_mensagem }}</p>
 
                                     <p style="margin-bottom: 5px; font-size: 14px; color: #555555;">**Mensagem Detalhada:**</p>
+                                    {# 
+                                      'white-space: pre-line' é um CSS importante que
+                                      preserva as quebras de linha (Enter) da mensagem original.
+                                    #}
                                     <p style="margin-top: 0; margin-bottom: 5px; white-space: pre-line; color: #444444;">{{ mensagem_detalhada }}</p>
                                 </td>
                             </tr>
                         </table>
+                        
+                        {# --- Informações de Contato do Aluno --- #}
                         <p style="margin-top: 30px;">**Informações do Aluno:**</p>
                         <ul style="margin: 5px 0 30px 20px; padding: 0;">
                             <li style="margin-bottom: 8px;">**Nome:** {{ aluno_nome }}</li>
+                            {# 
+                              Link 'mailto:':
+                              Cria um link clicável que abre o cliente de e-mail
+                              padrão do professor, com o 'aluno_email' já no campo "Para:".
+                            #}
                             <li style="margin-bottom: 8px;">**E-mail de Contato:** <a href="mailto:{{ aluno_email }}" style="color: #007bff; text-decoration: none;">{{ aluno_email }}</a></li>
                         </ul>
 
+                        {# 
+                          --- Call to Action (CTA) - Botão ---
+                          Este é um '<a>' (link) estilizado para parecer um botão.
+                          É a forma mais segura de criar botões em e-mails.
+                        #}
                         <table border="0" cellpadding="0" cellspacing="0" width="100%">
                             <tr>
                                 <td align="center" style="padding: 20px 0 0 0;">
                                     <table border="0" cellpadding="0" cellspacing="0">
                                         <tr>
                                             <td align="center" style="border-radius: 4px;" bgcolor="#007bff">
+                                                {# O 'link_perfil_aluno' é construído na view com 'request.build_absolute_uri' #}
                                                 <a href="{{ link_perfil_aluno }}" target="_blank" style="font-size: 18px; font-family: Arial, sans-serif; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 4px; border: 1px solid #007bff; display: inline-block;">
                                                     Ver Perfil Completo do Aluno
                                                 </a>
@@ -67,6 +127,8 @@
                                 </td>
                             </tr>
                         </table>
+                        
+                        {# --- Rodapé do E-mail --- #}
                         <p style="margin-top: 40px; font-size: 14px; color: #999999;">
                             Por favor, responda diretamente ao e-mail de contato do aluno ({{ aluno_email }}) para iniciar a conversa.
                         </p>
@@ -78,10 +140,3 @@
 </table>
 </body>
 </html>
-```eof
-
-**Confirmação:** Você conseguiu visualizar o código completo do template **`emails/notificacao_professor.html`** acima?
-
----
-
-Se a visualização estiver correta agora, o **próximo passo (Passo 3)** é ajustar o template de Detalhe de Perfil para adicionar o botão de contato. Para isso, preciso do seu código atual do **`users/perfil_detalhe.html`**. Por favor, cole-o aqui.

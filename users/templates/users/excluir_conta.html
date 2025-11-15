@@ -1,17 +1,28 @@
+{% comment %}
+Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
+{% endcomment %}
 {% extends 'base/base.html' %}
 {% load static %}
 
+{# Define o título da aba do navegador #}
 {% block title %}Confirmar Exclusão da Conta{% endblock %}
 
 {% block content %}
 <div class="container mx-auto p-4 md:p-8 max-w-2xl">
 
-    <!-- Mensagens do Django (caso alguma lógica de view envie uma) -->
+    {# 
+      Seção de Mensagens:
+      Este bloco geralmente não é usado aqui, pois qualquer mensagem
+      de sucesso ('Conta excluída') só aparecerá DEPOIS que o usuário
+      for redirecionado para a página inicial.
+    #}
     {% if messages %}
         <div class="mb-4 space-y-3">
             {% for message in messages %}
             <div class="p-3 text-sm rounded-lg shadow-md 
-                {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                {% if message.tags == 'success' %}bg-green-100 text-green-700
+                {% elif message.tags == 'error' %}bg-red-100 text-red-700
+                {% else %}bg-amber-100 text-amber-700{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
@@ -20,12 +31,22 @@
 
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-100">
         
-        <!-- Formulário de Exclusão -->
+        {# 
+          ========================================
+          FORMULÁRIO DE EXCLUSÃO
+          ========================================
+          Este formulário não tem campos visíveis. Sua única função
+          é enviar uma requisição 'POST' para a view 'excluir_conta'.
+          
+          É a requisição 'POST' (feita ao clicar no botão 'submit')
+          que dispara a lógica de exclusão no 'views.py'.
+          Uma requisição 'GET' (apenas carregar a página) não faz nada.
+        #}
         <form method="post">
-            {% csrf_token %}
+            {% csrf_token %} {# Token de segurança obrigatório #}
             
             <div class="text-center">
-                <!-- Ícone de Alerta -->
+                {# Ícone de Alerta (Zona de Perigo) #}
                 <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
 
                 <h1 class="text-3xl font-extrabold text-gray-800 mb-4">
@@ -33,6 +54,7 @@
                 </h1>
                 
                 <p class="text-lg text-gray-600 mb-2">
+                    {# 'user' aqui é o 'request.user' (o usuário logado) #}
                     Você tem certeza que deseja excluir sua conta, <strong>{{ user.username }}</strong>?
                 </p>
                 <p class="text-md text-gray-600 mb-6">
@@ -40,16 +62,25 @@
                 </p>
             </div>
 
-            <!-- Botões de Ação -->
+            {# --- Botões de Ação --- #}
             <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-center gap-4">
                 
-                <!-- Botão Cancelar (Volta para a página de edição de perfil) -->
+                {# 
+                  Botão Cancelar (Link <a>):
+                  Isto é um link seguro que simplesmente navega
+                  de volta para a página de edição de perfil,
+                  sem enviar o formulário.
+                #}
                 <a href="{% url 'users:editar_perfil' %}" 
                    class="w-full sm:w-auto py-3 px-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-lg shadow-md transition duration-300 text-center">
                     Cancelar
                 </a>
 
-                <!-- Botão Confirmar Exclusão (Vermelho) -->
+                {# 
+                  Botão Confirmar (Botão <button type="submit">):
+                  Este é o botão que envia o formulário 'POST' e
+                  confirma a exclusão.
+                #}
                 <button type="submit" 
                         class="w-full sm:w-auto py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-md transition duration-300 transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-red-500 focus:ring-opacity-50">
                     Sim, quero excluir minha conta
