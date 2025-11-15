@@ -1,21 +1,20 @@
-
 {% extends 'base/base.html' %} 
 {% comment %}
 Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
 {% endcomment %}
 {% load static %}
 {% load custom_tags %} 
-{#Carrega o filtro 'add_class' (embora este template use JS para estilizar) #}
+{% comment %} Carrega o filtro 'add_class' (embora este template use JS para estilizar) {% endcomment %}
 
-{#Define o título da aba do navegador #}
+{% comment %} Define o título da aba do navegador {% endcomment %}
 {% block title %}Acesso à Conta{% endblock %}
 
 {% block content %}
 
-{#
+{% comment %}
   Esta seção 'section' usa Tailwind para centralizar o
   card de login no meio da tela (flex items-center justify-center).
-#}
+{% endcomment %}
 <section class="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
     <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl space-y-6 transform transition duration-500 hover:shadow-3xl">
         
@@ -23,12 +22,12 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             <i class="fas fa-lock mr-2 text-gray-700"></i> Acesso à Conta
         </h2>
         
-        {#
+        {% comment %}
           Seção de Mensagens:
           Exibe mensagens de feedback. A mais comum aqui será
           enviada pelo Django se a senha estiver errada,
           ou uma mensagem 'success' após o registro.
-        #}
+        {% endcomment %}
         {% if messages %}
             <div class="space-y-3">
                 {% for message in messages %}
@@ -42,43 +41,43 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </div>
         {% endif %}
 
-        {#
+        {% comment %}
           Formulário de Login:
           A view 'auth_views.LoginView' (do 'users/urls.py')
           automaticamente passa o 'form' (AuthenticationForm)
           para este template.
-        #}
+        {% endcomment %}
         <form method="post" class="space-y-4">
-            {% csrf_token %} {#Token de segurança obrigatório #}
+            {% csrf_token %} {% comment %} Token de segurança obrigatório {% endcomment %}
             
-            {#
+            {% comment %}
               Loop de Renderização do Formulário:
               Itera sobre os campos do 'AuthenticationForm'
               (que são 'username' e 'password').
-            #}
+            {% endcomment %}
             {% for field in form %}
                 <div class="group">
                     <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                         {{ field.label }}
                     </label>
-                    {#
+                    {% comment %}
                       Renderização Bruta do Campo:
                       '{{ field }}' renderiza o HTML <input ...>
                       A estilização deste campo é aplicada
                       pelo script JavaScript no final do arquivo.
-                    #}
+                    {% endcomment %}
                     {{ field }}
                     {% if field.help_text %}
                         <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
                     {% endif %}
-                    {#Exibe erros de validação (ex: "Campo obrigatório") #}
+                    {% comment %} Exibe erros de validação (ex: "Campo obrigatório") {% endcomment %}
                     {% for error in field.errors %}
                         <p class="text-sm text-red-500 mt-1">{{ error }}</p>
                     {% endfor %}
                 </div>
             {% endfor %}
             
-            {#
+            {% comment %}
               Campo Oculto 'next':
               Este é um campo crucial do fluxo de autenticação.
               Se um usuário tenta acessar '/perfil/editar/' (protegido)
@@ -86,8 +85,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
               '/login/?next=/perfil/editar/'.
               Este campo oculto captura o valor '/perfil/editar/' e,
               após o login, redireciona o usuário para lá.
-            #}
-
+            {% endcomment %}
             <input type="hidden" name="next" value="{{ next }}">
 
             <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
@@ -95,16 +93,16 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </button>
         </form>
         
-        {#Links de ajuda (recuperação de senha e registro) #}
+        {% comment %} Links de ajuda (recuperação de senha e registro) {% endcomment %}
         <div class="text-center pt-4 border-t border-gray-100 mt-6">
             <p class="text-sm text-gray-600 space-y-2">
-                {#'password_reset' é uma URL padrão do 'django.contrib.auth.urls' #}
+                {% comment %} 'password_reset' é uma URL padrão do 'django.contrib.auth.urls' {% endcomment %}
                 <a href="{% url 'password_reset' %}" class="font-medium text-yellow-600 hover:text-yellow-500 transition duration-150 ease-in-out block">
                     Esqueceu sua senha?
                 </a>
                 <span class="block">
                     Novo por aqui? 
-                    {#'users:registro' é a sua view de registro customizada #}
+                    {% comment %} 'users:registro' é a sua view de registro customizada {% endcomment %}
                     <a href="{% url 'users:registro' %}" class="font-medium text-yellow-600 hover:text-yellow-500 transition duration-150 ease-in-out">
                         Crie sua conta
                     </a>
@@ -114,13 +112,13 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
     </div>
 </section>
 
-{#
+{% comment %}
   Script de Estilização de Formulário:
   Este script é uma alternativa ao filtro '|add_class'.
   Ele espera a página carregar ('DOMContentLoaded') e, em seguida,
   procura ('querySelectorAll') todos os campos de formulário e
   adiciona manualmente a lista de classes do Tailwind a eles.
-#}
+{% endcomment %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('form');

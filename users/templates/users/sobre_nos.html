@@ -1,18 +1,14 @@
-
 {% extends 'base/base.html' %}
-{% comment %}
-Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
-{% endcomment %}
 {% load static %}
 
-{#Define o título da aba do navegador #}
+{% comment %} Define o título da aba do navegador {% endcomment %}
 {% block title %}Sobre Nós{% endblock %}
 
 {% block content %}
 <div class="bg-white py-16 lg:py-24">
     <div class="container mx-auto px-4">
 
-        {#--- Cabeçalho Principal --- #}
+        {% comment %} --- Cabeçalho Principal --- {% endcomment %}
         <div class="text-center mb-12">
             <h1 class="text-4xl lg:text-5xl font-extrabold text-gray-900">Sobre o Professor Certo</h1>
             <p class="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
@@ -20,7 +16,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </p>
         </div>
 
-        {#--- Seção: Nossa Missão --- #}
+        {% comment %} --- Seção: Nossa Missão --- {% endcomment %}
         <div class="max-w-3xl mx-auto mb-16">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
                 <i class="fas fa-bullseye text-amber-500 mr-3"></i>
@@ -34,7 +30,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </p>
         </div>
 
-        {#--- Seção: Para Alunos --- #}
+        {% comment %} --- Seção: Para Alunos --- {% endcomment %}
         <div class="max-w-3xl mx-auto mb-16">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
                 <i class="fas fa-user-graduate text-amber-500 mr-3"></i>
@@ -45,7 +41,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </p>
         </div>
 
-        {#--- Seção: Para Professores --- #}
+        {% comment %} --- Seção: Para Professores --- {% endcomment %}
         <div class="max-w-3xl mx-auto mb-16">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
                 <i class="fas fa-chalkboard-teacher text-amber-500 mr-3"></i>
@@ -56,7 +52,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </p>
         </div>
 
-        {#--- Seção: Origem do Projeto --- #}
+        {% comment %} --- Seção: Origem do Projeto --- {% endcomment %}
         <div class="max-w-3xl mx-auto mb-16">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
                 <i class="fas fa-lightbulb text-amber-500 mr-3"></i> 
@@ -67,7 +63,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </p>
         </div>
 
-        {#--- Seção: Equipe --- #}
+        {% comment %} --- Seção: Equipe --- {% endcomment %}
         <div class="max-w-3xl mx-auto mb-16">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
                 <i class="fas fa-users text-amber-500 mr-3"></i> 
@@ -86,7 +82,7 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </ul>
         </div>
 
-        {#--- Seção: Tecnologias --- #}
+        {% comment %} --- Seção: Tecnologias --- {% endcomment %}
         <div class="max-w-3xl mx-auto mb-16">
             <h2 class="text-3xl font-bold text-gray-900 mb-4 flex items-center">
                 <i class="fas fa-code text-amber-500 mr-3"></i> 
@@ -105,8 +101,8 @@ Herda a estrutura principal (menu, rodapé) do 'base/base.html'.
             </ul>
         </div>
 
-        {#--- Seção: Call to Action (CTA) --- #}
-        {#Um link final incentivando o usuário a se registrar. #}
+        {% comment %} --- Seção: Call to Action (CTA) --- {% endcomment %}
+        {% comment %} Um link final incentivando o usuário a se registrar. {% endcomment %}
         <div class="text-center mt-12">
             <a href="{% url 'users:registro' %}"
                class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-lg transition duration-300 transform hover:scale-105">
