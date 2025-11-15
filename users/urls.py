@@ -50,12 +50,7 @@ urlpatterns = [
 
     # Rota para a página 'Sobre Nós'
     path('sobre/', views.sobre_nos, name='sobre_nos'),
-]"""
-Configuração de URLs (Roteador) para o aplicativo 'users'.
-
-Este arquivo define o "mapa" de URLs do aplicativo 'users'. Ele conecta
-cada padrão de URL (path) a uma função correspondente no arquivo 'views.py'.
-"""
+]
 
 from django.urls import path
 # Importa as views de autenticação prontas do Django (para login/logout)
