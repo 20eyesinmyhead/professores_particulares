@@ -47,9 +47,9 @@ encontrar seus arquivos de CSS e imagens usando a tag 'static'.
                     {# A URL aponta para a home page (lista de professores) #}
                     <a class="flex items-center text-white text-xl font-bold" href="{% url 'users:lista_professores' %}">
                         {# 
-                          Usa a tag {% static %} para carregar o logo.
-                          Isso é melhor que '/static/...' pois funciona
-                          mesmo se o STATIC_URL for alterado em produção.
+                          *** CORREÇÃO APLICADA AQUI ***
+                          'static' (com aspas) é seguro dentro de um comentário.
+                          {% static %} (com porcentagem) não é.
                         #}
                         <img src="{% static 'images/logocerto.jpg' %}" alt="Logo Professor Certo!" class="h-12 w-auto mr-2 rounded"> 
                         <span></span>
