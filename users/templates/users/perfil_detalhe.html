@@ -1,30 +1,30 @@
 {% extends 'base/base.html' %} 
 {% load static %}
-{% load perfil_tags %} {#Carrega tags customizadas (ex: 'add_class') #}
+{% load perfil_tags %} {% comment %} Carrega tags customizadas (ex: 'add_class') {% endcomment %}
 
-{#
+{% comment %}
   Define o título da aba do navegador dinamicamente.
   'user_perfil' é o objeto do usuário (CustomUser) que está sendo visualizado.
-#}
+{% endcomment %}
 {% block title %}Perfil de {{ user_perfil.username }}{% endblock %}
 
-{#Início do bloco de conteúdo principal #}
+{% comment %} Início do bloco de conteúdo principal {% endcomment %}
 {% block content %}
 
 <div class="container mx-auto p-4 md:p-8 mt-4">
     
-    {#
+    {% comment %}
       Seção para exibir mensagens de feedback (ex: "Mensagem enviada!").
       As mensagens são passadas pela view (ex: após um redirect).
-    #}
+    {% endcomment %}
     {% if messages %}
         <div class="mb-6 space-y-3">
             {% for message in messages %}
-            <div classclass="p-3 text-sm rounded-lg shadow-md 
-                {#
+            <div class="p-3 text-sm rounded-lg shadow-md 
+                {% comment %}
                   Define a cor do alerta com base na 'tag' da mensagem (success, error, warning).
                   A tag 'warning' foi usada na view 'contato_professor' para erros de e-mail.
-                #}
+                {% endcomment %}
                 {% if message.tags == 'success' %}bg-amber-100 text-amber-800
                 {% elif message.tags == 'error' %}bg-red-100 text-red-700
                 {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700
@@ -36,37 +36,37 @@
         </div>
     {% endif %}
 
-    {#Card principal que envolve todo o conteúdo do perfil #}
+    {% comment %} Card principal que envolve todo o conteúdo do perfil {% endcomment %}
     <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
         
-        {#======================================== #}
-        {#CABEÇALHO PRINCIPAL DO PERFIL             #}
-        {#======================================== #}
+        {% comment %} ======================================== {% endcomment %}
+        {% comment %} CABEÇALHO PRINCIPAL DO PERFIL             {% endcomment %}
+        {% comment %} ======================================== {% endcomment %}
         <div class="bg-gray-800 p-6 sm:p-8 text-white grid grid-cols-1 md:grid-cols-3 gap-y-6 md:gap-x-8 items-center md:items-end">
             
-            {#--- COLUNA 1: IMAGEM DO PERFIL --- #}
+            {% comment %} --- COLUNA 1: IMAGEM DO PERFIL --- {% endcomment %}
             <div class="flex justify-center md:justify-start md:col-span-1">
-                {#Se o usuário tem uma foto de perfil, exibe-a #}
+                {% comment %} Se o usuário tem uma foto de perfil, exibe-a {% endcomment %}
                 {% if user_perfil.foto_perfil %}
                     <img class="h-72 w-72 rounded-lg object-cover ring-4 ring-white shadow-lg mx-auto md:mx-0" 
                          src="{{ user_perfil.foto_perfil.url }}" 
                          alt="Foto de Perfil de {{ user_perfil.como_deseja_ser_chamado }}">
-                {#Senão, exibe um placeholder com a inicial do nome #}
+                {% comment %} Senão, exibe um placeholder com a inicial do nome {% endcomment %}
                 {% else %}
                     <div class="h-72 w-72 rounded-lg bg-gray-500 flex items-center justify-center text-4xl font-bold ring-4 ring-white shadow-lg mx-auto md:mx-0">
-                        {#
+                        {% comment %}
                           Filtros encadeados:
                           1. Usa 'como_deseja_ser_chamado'
                           2. Se for vazio, usa 'username' (default)
                           3. Pega o primeiro caractere (slice)
                           4. Converte para maiúsculo (upper)
-                        #}
+                        {% endcomment %}
                         {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username|slice:":1"|upper }}
                     </div>
                 {% endif %}
             </div>
 
-            {#--- COLUNA 2: INFORMAÇÕES E BOTÕES DE AÇÃO --- #}
+            {% comment %} --- COLUNA 2: INFORMAÇÕES E BOTÕES DE AÇÃO --- {% endcomment %}
             <div class="text-center md:text-left md:col-span-2 md:ms-8">
                 <h1 class="text-4xl font-extrabold mb-1 text-white leading-tight">
                     {{ user_perfil.como_deseja_ser_chamado|default:user_perfil.username }}
@@ -74,10 +74,10 @@
                 
                 <p class="text-lg text-gray-300 italic mb-2">
                     @{{ user_perfil.username }}
-                    {#
+                    {% comment %}
                       Verifica a variável 'tipo_perfil' (passada pela view)
                       para exibir a tag "Professor" ou "Aluno".
-                    #}
+                    {% endcomment %}
                     {% if tipo_perfil == 'professor' %}
                         — <span class="text-yellow-400 font-semibold">Professor(a) Verificado(a)</span>
                     {% else %}
@@ -89,16 +89,16 @@
                     <p class="text-sm text-gray-400 mt-1">Nome Completo: {{ user_perfil.nome_completo }}</p>
                 {% endif %}
 
-                {#
+                {% comment %}
                   Lógica de Botões de Ação:
                   O botão exibido depende de QUEM está vendo o perfil.
-                #}
+                {% endcomment %}
                 <div class="flex flex-col space-y-3 mt-6 items-center md:items-end md:justify-end md:me-8">
-                    {#
+                    {% comment %}
                       Bloco 1: Dono do Perfil
                       Verifica se o usuário logado ('request.user') é o
                       mesmo usuário do perfil que está sendo visto ('user_perfil').
-                    #}
+                    {% endcomment %}
                     {% if request.user == user_perfil %}
                         <a href="{% url 'users:editar_perfil' %}" 
                            class="w-full md:w-auto inline-flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
@@ -110,11 +110,11 @@
                             <i class="fas fa-inbox me-2"></i> Minhas Mensagens
                         </a>
                         
-                    {#
+                    {% comment %}
                       Bloco 2: Visitante Logado (Vendo Perfil de Professor)
                       Exibido se o usuário logado NÃO for o dono, mas
                       estiver autenticado E o perfil for de um professor.
-                    #}
+                    {% endcomment %}
                     {% elif request.user.is_authenticated and tipo_perfil == 'professor' %}
                         <a href="{% url 'users:contato_professor' professor_pk=user_perfil.pk %}" 
                            class="w-full md:w-auto inline-flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition duration-300 transform hover:scale-105">
@@ -126,13 +126,13 @@
             
         </div>
 
-        {#======================================== #}
-        {#SEÇÃO DE CONTEÚDO INFERIOR                #}
-        {#======================================== #}
+        {% comment %} ======================================== {% endcomment %}
+        {% comment %} SEÇÃO DE CONTEÚDO INFERIOR                {% endcomment %}
+        {% comment %} ======================================== {% endcomment %}
         <div class="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {#--- BLOCO DE INFORMAÇÕES GERAIS (Sidebar) --- #}
-            {#'lg:col-span-1' -> Ocupa 1 de 3 colunas em telas grandes #}
+            {% comment %} --- BLOCO DE INFORMAÇÕES GERAIS (Sidebar) --- {% endcomment %}
+            {% comment %} 'lg:col-span-1' -> Ocupa 1 de 3 colunas em telas grandes {% endcomment %}
             <div class="lg:col-span-1 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-100">
                 <h3 class="text-xl font-bold text-gray-800 border-b-2 border-amber-400 pb-3 mb-4 flex items-center">
                     <i class="fas fa-info-circle me-3 text-amber-500"></i> Informações Gerais
@@ -146,11 +146,11 @@
                         </dd>
                     </div>
 
-                    {#
+                    {% comment %}
                       Verificação de Privacidade (Dono do Perfil):
                       O telefone só é exibido se o 'request.user' for
                       o dono do 'user_perfil'.
-                    #}
+                    {% endcomment %}
                     {% if request.user == user_perfil %}
                         <div class="flex items-center">
                             <i class="fas fa-phone-alt text-amber-500 me-3"></i>
@@ -169,21 +169,21 @@
 
                     <div class="mt-6 pt-4 border-t border-gray-200">
                         <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-tags me-3 text-amber-500"></i> Meus Interesses</h4>
-                        {#O filtro 'linebreaksbr' converte quebras de linha (Enter) em <br> #}
+                        {% comment %} O filtro 'linebreaksbr' converte quebras de linha (Enter) em <br> {% endcomment %}
                         <p class="text-gray-700 text-justify leading-relaxed">{{ user_perfil.interesses|default:"Nenhum interesse listado."|linebreaksbr }}</p>
                     </div>
                 </dl>
             </div>
 
-            {#--- BLOCO DE DETALHES ESPECÍFICOS (Conteúdo Principal) --- #}
-            {#'lg:col-span-2' -> Ocupa 2 de 3 colunas em telas grandes #}
+            {% comment %} --- BLOCO DE DETALHES ESPECÍFICOS (Conteúdo Principal) --- {% endcomment %}
+            {% comment %} 'lg:col-span-2' -> Ocupa 2 de 3 colunas em telas grandes {% endcomment %}
             <div class="lg:col-span-2 space-y-8">
                 
-                {#
+                {% comment %}
                   Bloco 1: CONTEÚDO PARA PROFESSORES
                   Verifica se o 'tipo_perfil' é 'professor' E se
                   o objeto 'perfil_extensao' (o ProfessorProfile) existe.
-                #}
+                {% endcomment %}
                 {% if tipo_perfil == 'professor' and perfil_extensao %} 
                     
                     <div class="bg-amber-50 p-6 rounded-xl shadow-md border-l-4 border-amber-400">
@@ -191,24 +191,24 @@
                             <i class="fas fa-star text-amber-600 me-4"></i> Perfil Profissional
                         </h3>
                         
-                        {#Grid dinâmico: 3 colunas se for voluntário, 2 se não for #}
+                        {% comment %} Grid dinâmico: 3 colunas se for voluntário, 2 se não for {% endcomment %}
                         <div class="grid grid-cols-1 {% if perfil_extensao.is_voluntario %}sm:grid-cols-3{% else %}sm:grid-cols-2{% endif %} gap-4 mb-6 text-center">
                             
-                            {#Box: Tarifa #}
+                            {% comment %} Box: Tarifa {% endcomment %}
                             <div class="p-4 bg-white rounded-lg shadow-sm border border-amber-200">
                                 <p class="text-lg font-bold text-gray-600">Tarifa por Hora:</p>
                                 <p class="text-2xl font-extrabold text-amber-700">
-                                    {#Mostra o valor apenas se for > 0 #}
+                                    {% comment %} Mostra o valor apenas se for > 0 {% endcomment %}
                                     {% if perfil_extensao.tarifa_hora and perfil_extensao.tarifa_hora > 0 %}
                                         R$ {{ perfil_extensao.tarifa_hora|floatformat:2 }}/h
-                                    {#Senão (tarifa = 0 ou None), exibe "Gratuito" #}
+                                    {% comment %} Senão (tarifa = 0 ou None), exibe "Gratuito" {% endcomment %}
                                     {% else %}
                                         <span class="text-gray-500">Gratuito</span>
                                     {% endif %}
                                 </p>
                             </div>
                             
-                            {#Box: Status #}
+                            {% comment %} Box: Status {% endcomment %}
                             <div class="p-4 bg-white rounded-lg shadow-sm border border-amber-200">
                                 <p class="text-lg font-bold text-gray-600">Status:</p>
                                 <p class="text-2xl font-extrabold text-gray-800">
@@ -220,7 +220,7 @@
                                 </p>
                             </div>
 
-                            {#Box: Voluntário (só aparece se 'is_voluntario' for True) #}
+                            {% comment %} Box: Voluntário (só aparece se 'is_voluntario' for True) {% endcomment %}
                             {% if perfil_extensao.is_voluntario %}
                             <div class="p-4 bg-white rounded-lg shadow-sm border border-amber-200">
                                 <p class="text-lg font-bold text-gray-600">Contribuição:</p>
@@ -231,26 +231,26 @@
                             {% endif %}
                         </div>
 
-                        {#Seção: Disciplinas #}
+                        {% comment %} Seção: Disciplinas {% endcomment %}
                         <div class="mb-6 pt-4 border-t border-amber-200">
                             <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-book-open me-3 text-amber-600"></i> Disciplinas Lecionadas</h4>
                             <p class="text-gray-700 leading-relaxed">{{ perfil_extensao.disciplinas|default:"Nenhuma disciplina listada."|linebreaksbr }}</p>
                         </div>
 
-                        {#Seção: Bio Profissional #}
+                        {% comment %} Seção: Bio Profissional {% endcomment %}
                         <div class="mb-6 pt-4 border-t border-amber-200">
                             <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-briefcase me-3 text-amber-600"></i> Sobre o Professor</h4>
                             <p class="text-gray-700 text-justify leading-relaxed">{{ perfil_extensao.bio_profissional|default:"Sem descrição profissional."|linebreaksbr }}</p>
                         </div>
                         
-                        {#Seção: Metodologia #}
+                        {% comment %} Seção: Metodologia {% endcomment %}
                         <div class="p-5 rounded-lg mt-6">
                             <h4 class="font-bold text-gray-800 mb-3 flex items-center"><i class="fas fa-school me-3 text-amber-700"></i> Detalhes e Metodologia da Aula</h4>
                             <p class="text-gray-700 text-justify leading-relaxed mb-4">{{ perfil_extensao.sobre_a_aula|default:"Sem detalhes sobre a metodologia."|linebreaksbr }}</p>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 mt-4 pt-3 border-t ">
                                 <span class="inline-flex items-center text-sm text-gray-700">
-                                    {#Cor do ícone muda com base no booleano #}
+                                    {% comment %} Cor do ícone muda com base no booleano {% endcomment %}
                                     <i class="fas fa-globe me-2 {% if perfil_extensao.aceita_online %}text-amber-600{% else %}text-gray-500{% endif %}"></i>
                                     Aulas Online: 
                                     <span class="font-semibold ms-1">{% if perfil_extensao.aceita_online %}Sim{% else %}Não{% endif %}</span>
@@ -261,8 +261,10 @@
                                     <span class="font-semibold ms-1">{% if perfil_extensao.aceita_grupo %}Sim{% else %}Não{% endif %}</span>
                                 </span>
                                 
-                                {#*** CORREÇÃO DE BUG *** #}
-                                {#O código original verificava 'modalidades' mas exibia 'modalidade'. Corrigido. #}
+                                {% comment %}
+                                  *** CORREÇÃO DE BUG ***
+                                  O código original verificava 'modalidades' mas exibia 'modalidade'. Corrigido.
+                                {% endcomment %}
                                 {% if perfil_extensao.modalidades %}
                                     <p class="text-sm mt-2 text-gray-700 sm:col-span-2"><span class="font-semibold">Local de Aula:</span> {{ perfil_extensao.modalidades }}</p>
                                 {% endif %}
@@ -270,11 +272,11 @@
                         </div>
                     </div>
                 
-                {#
+                {% comment %}
                   Bloco 2: CONTEÚDO PARA ALUNOS
                   Este é o 'else' do 'if tipo_perfil == "professor"'.
                   Exibido se o perfil for de um aluno.
-                #}
+                {% endcomment %}
                 {% else %}
                     <div class="bg-amber-50 p-6 rounded-xl shadow-md border-l-4 border-amber-400">
                         <h3 class="text-2xl font-extrabold text-amber-800 mb-5 flex items-center">
@@ -289,12 +291,12 @@
                     </div>
                 {% endif %}
                 
-                {#
+                {% comment %}
                   Bloco 3: Call to Action (Botão de Contato)
                   Redundante com o botão do cabeçalho, mas bom para UX.
                   Aparece no final da página se o visitante for logado,
                   o perfil for de professor, e o visitante não for o dono.
-                #}
+                {% endcomment %}
                 {% if request.user.is_authenticated and tipo_perfil == 'professor' and request.user != user_perfil %}
                     <div class="text-center p-6 bg-gray-100 rounded-xl shadow-md border border-gray-200">
                         <p class="mb-4 text-xl font-semibold text-gray-800">Interessado nas aulas de {{ user_perfil.como_deseja_ser_chamado }}?</p>
