@@ -20,7 +20,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-#vv6=3)!8f96h@_-w+jz8
 
 # Define o modo DEBUG. É 'False' em produção (quando a variável 'RENDER' existe)
 # e 'True' localmente, para exibir erros detalhados durante o desenvolvimento.
-DEBUG = 'True'
+DEBUG = 'RENDER' not in os.environ
 
 # Lista de hosts permitidos.
 ALLOWED_HOSTS = []
